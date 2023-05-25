@@ -12,6 +12,7 @@ const config = {
     user: 'postgres',
     password: 'Mado451880',
     database: 'se_project',
+    //zoz
   }
 };
 
