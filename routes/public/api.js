@@ -83,6 +83,4 @@ app.post("/api/v1/user", async function (req, res) {
       return res.status(400).send("Could not register user");
     }
   });
-  
 }
-

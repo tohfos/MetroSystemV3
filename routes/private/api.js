@@ -78,6 +78,25 @@ module.exports = function (app) {
   });
 
 
+
+  const routesData = await db.query("SELECT * FROM se_routes");
+const stationsData = await db.query("SELECT * FROM se_stations");
+
+// Create an empty graph object
+const graph = {};
+
+// Iterate over the routes data and populate the graph object
+routesData.forEach((route) => {
+  const { id, routename, fromstationid, tostationid } = route;
+
+  if (!(fromstationid in graph)) {
+    graph[fromstationid] = {};
+  }
+
+  graph[fromstationid][tostationid] = routename;
+});
+
+
   app.put("/api/v1/station/:stationId",async function(req,res){
      
     const {stationname}=req.body;
@@ -210,5 +229,161 @@ if(isEmpty(ticket)){
 
 
 });
+
+app.post("/api/v1/tickets/purchase/subscription", async function (req, res) {
+  try {
+    // Get the user information
+    const user = await getUser(req);
+
+    // Check if the user is authorized to purchase by subscription
+    if (!user || !user.isNormal) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    // Retrieve the necessary data from the request body
+    const { origin, destination, subType, noOfTickets } = req.body;
+
+    // Validate the request body
+    if (isEmpty(origin) || isEmpty(destination) || isEmpty(subType) || !noOfTickets) {
+      return res.status(400).json({ message: "Invalid request" });
+    }
+
+    // Retrieve the zone ID based on the origin
+    const zone = await db.select("id").from("se_project.zones").where("zonetype", origin).first();
+    if (!zone) {
+      return res.status(404).json({ message: "Zone not found" });
+    }
+
+    // Calculate the price based on the zone and subscription type
+    const subscription = await db
+      .select("price")
+      .from("se_project.zones")
+      .where("zonetype", origin)
+      .first();
+
+    if (!subscription) {
+      return res.status(404).json({ message: "Subscription not found" });
+    }
+
+    const totalPrice = subscription.price * noOfTickets;
+
+    // Create a new ticket entry
+    const ticket = await db("se_project.tickets").insert({
+      origin,
+      destination,
+      userid: user.id,
+      subid: null, // To be updated if purchased by subscription
+      tripdate: new Date().toISOString(),
+    }).returning("*");
+
+    // Create a new subscription entry
+    const subscriptionEntry = await db("se_project.subscription").insert({
+      subtype: subType,
+      zoneid: zone.id,
+      userid: user.id,
+      nooftickets: noOfTickets,
+    }).returning("*");
+
+    // Update the ticket entry with the subscription ID
+    await db("se_project.tickets").where("id", ticket.id).update({ subid: subscriptionEntry.id });
+
+    return res.status(200).json({
+      ticket: ticket[0],
+      subscription: subscriptionEntry[0],
+      totalPrice
+    });
+  } catch (error) {
+    console.error("Error purchasing ticket by subscription:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.get("/api/v1/tickets/price/:originId&:destinationId", async function (req, res) {
+  const originId = parseInt(req.params.originId);
+  const destinationId = parseInt(req.params.destinationId);
+  const ourRoute = calculateRoute(originId, destinationId);
+
+  if (!ourRoute) {
+    return res.status(404).json({ message: "Route not found" });
+  }
+  else {
+    
+    return res.status(200).json({ ourRoute });
+  }
+
   
+
+  
+
+
+  
+});
+
+
+
+// Function to calculate the best route and number of stations
+async function calculateRoute(origin, destination) {
+  // Create an object to store the distances from the origin to each station
+  const distances = {};
+  // Create an object to store the previous station in the best route
+  const previous = {};
+  // Create a set to keep track of visited stations
+  const visited = new Set();
+
+  // Set the initial distance for the origin station to 0 and other stations to Infinity
+  for (const station in graph) {
+    distances[station] = station === origin ? 0 : Infinity;
+  }
+
+  while (true) {
+    let closestStation = null;
+    let shortestDistance = Infinity;
+
+    // Find the station with the shortest distance from the origin among the unvisited stations
+    for (const station in graph) {
+      if (!visited.has(station) && distances[station] < shortestDistance) {
+        closestStation = station;
+        shortestDistance = distances[station];
+      }
+    }
+
+    if (closestStation === null) {
+      break; // No more reachable stations
+    }
+
+    // Mark the closest station as visited
+    visited.add(closestStation);
+
+    // Update the distances to the neighboring stations
+    for (const neighbor in graph[closestStation]) {
+      const route = graph[closestStation][neighbor];
+      const distance = shortestDistance + 1; // Assuming each station is 1 unit away
+
+      if (distance < distances[neighbor]) {
+        distances[neighbor] = distance;
+        previous[neighbor] = closestStation;
+      }
+    }
+  }
+
+  // Check if a route is found from origin to destination
+  if (!(destination in previous)) {
+    return { route: [], stations: 0 }; // No route found
+  }
+
+  // Reconstruct the best route
+  const route = [];
+  let currentStation = destination;
+  while (currentStation !== origin) {
+    route.unshift(graph[previous[currentStation]][currentStation]);
+    currentStation = previous[currentStation];
+  }
+
+  return { route, stations: route.length };
+}
+
+
+
+
+
 };
