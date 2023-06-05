@@ -669,6 +669,95 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
 
   //sobhy's
 
+  // zozz 
+
+  app.put("/api/v1/zones/:zoneId", async function(req, res) {
+    console.log("PUT /api/v1/zones/:zoneId");
+    try {
+      const user = await getUser(req);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+  
+      const zoneId = parseInt(req.params.zoneId);
+      const { price } = req.body;
+  
+      if (!price) {
+        return res.status(400).json({ message: "Invalid request" });
+      }
+  
+      const zone = await db("se_project.zones").where("id", zoneId).update({ price }).returning("*");
+      if (!zone) {
+        return res.status(404).json({ message: "Zone not found" });
+      }
+  
+      return res.status(200).json(zone[0]);
+    } catch (error) {
+      console.error("Error updating zone:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+    
+  });
+
+  //subscription
+  app.post("/api/v1/tickets/purchase/subscription", async function (req, res) {
+    try {
+      const { subId, origin, destination, tripdatee } = req.body;
+  
+      // Validate required fields
+      if (!subId || !origin || !destination || !tripdatee) {
+        return res.status(400).send("Missing required fields");
+      }
+      
+
+      
+      // Perform additional validations and checks
+      // Check if the subscription exists
+      const subscription = await db
+        .select("*")
+        .from("se_project.subsription")
+        .where("id", subId)
+        .first();
+  
+      if (!subscription) {
+        return res.status(404).send("Subscription not found");
+      }
+  
+      // Perform any other necessary validations and checks
+      // ...
+      const user = await getUser(req);
+      const userId = user.id;
+
+          // Check if nooftickets is greater than zero
+      if (subscription.nooftickets === 0) {
+        return res.status(400).send("No tickets available for this subscription");
+      }
+      // Create the ticket
+      const ticket = {
+        subid: subId,
+        origin: origin,
+        destination: destination,
+        tripdate: tripdatee,
+        userid: userId,
+      };
+  
+      // Save the ticket to the database
+      const createdTicket = await db("se_project.tickets")
+        .insert(ticket)
+        .returning("*");
+      
+    await db("se_project.subsription")
+    .where("id", subId)
+    .where("nooftickets", ">", 0)
+    .decrement("nooftickets", 1);
+      return res.status(201).json(createdTicket);
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not purchase the ticket by subscription");
+    }
+  });
+  
+
 
 
   });
