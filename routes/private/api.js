@@ -362,6 +362,225 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
 
 //Gerges kan hena ^
 
+//
+  //reset password
+  //
+  app.put("/api/v1/password/reset", async function (req, res) {
+    try {
+      const { newPassword } = req.body;
+      const user = await getUser(req);
+
+      await db("se_project.users")
+        .where("id", user.id)
+        .update({ password: newPassword });
+
+      return res.status(200).send("Password reset successful");
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not reset password");
+    }
+  });
+
+  //helper method
+  function generateUniqueId() {
+    const timestamp = new Date().getTime();
+    const random = Math.floor(Math.random() * 1000);
+    return `${timestamp}-${random}`;
+  }
+
+  //
+  // simulate ride
+  //
+  app.put("/api/v1/ride/simulate", async function (req, res) {
+    try {
+      const { origin, destination, tripdatee } = req.body;
+      const user = await getUser(req);
+      console.log("Simulating a ride...");
+
+
+      const originStation = await db
+        .select("*")
+        .from("se_project.stations")
+        .where("stationname", origin)
+        .first();
+
+      const destinationStation = await db
+        .select("*")
+        .from("se_project.stations")
+        .where("stationname", destination)
+        .first();
+
+      if (!originStation || !destinationStation) {
+        return res.status(400).send("Invalid origin or destination station");
+      }
+
+      const ride = {
+        status: "simulated",
+        origin: originStation.stationname,
+        destination: destinationStation.stationname,
+        userid: user.id,
+        ticketid: 1, // what should i put here?
+        tripdate: tripdatee,
+      };
+
+      const createdRide = await db("se_project.rides").insert(ride).returning("*");
+
+      return res.status(200).json(createdRide);
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not simulate ride");
+    }
+  });
+
+  //
+  //create a new route
+  //
+
+  app.post("/api/v1/route", async function (req, res) {
+    try {
+      const { stationId, connectedStationId, routename } = req.body;
+      const user = await getUser(req);
+  
+      if (!user.isAdmin) {
+        return res.status(401).send("Unauthorized");
+      }
+  
+      // Retrieve the newly created station
+      const station = await db
+        .select("*")
+        .from("se_project.stations")
+        .where("id", stationId)
+        .first();
+  
+      if (!station) {
+        return res.status(404).send("Station not found");
+      }
+  
+      // Check if the position is valid (start or end)
+      if (station.stationposition !== "start" && station.stationposition !== "end") {
+        return res.status(400).send("Invalid position");
+      }
+  
+      // Create the route
+      const newRoute = {
+        fromstationid: stationId,
+        tostationid: connectedStationId,
+        routename,
+      };
+  
+      // Insert the new route into the routes table
+      const [createdRoute] = await db("se_project.routes").insert(newRoute).returning(["id", "fromstationid", "tostationid"]);
+  
+      // Create the stationRoute entry
+      const stationRoute = {
+        stationid: stationId,
+        routeid: createdRoute.id,
+      };
+  
+      // Insert the stationRoute into the stationRoutes table
+      await db("se_project.stationroutes").insert(stationRoute);
+  
+      return res.status(201).send("Route created successfully");
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not create the route");
+    }
+
+    //pay for sub online
+
+    app.post("/api/v1/payment/subscription", async function (req, res) {
+      const { creditCardNumber, holderName, amount, subType, zoneId } = req.body;
+      console.log("PAYMENT INFO ACCEPTED!")
+      const generatedPurchasedId = generateUniqueId();
+      const user = await getUser(req);
+      if(subType == "yearly"){
+        amount *= 10;
+      }
+      if(zoneId == 2){
+        amount *= 2;
+      }else
+      if(zoneId == 3){
+        amount *= 3;
+      }
+
+      const paymentId = await db("se_project.transactions").insert({
+        amount,
+        userid: user.id,
+        purchasediid: generatedPurchasedId,
+      }).returning("id");
+      
+      await db("se_project.subsription").insert({
+        subtype: subType,
+        zoneid: zoneId,
+        userid: user.id,
+        nooftickets: 10,
+      });
+
+      return res.status(200).json({ success: true, paymentId });
+
+  });
+
+  //pay for a ticket
+  //
+  app.post("/api/v1/payment/ticket", async function (req, res) {
+    try {
+      const {
+        creditCardNumber,
+        holderName,
+        amount,
+        origin,
+        destination,
+        tripdatee,
+      } = req.body;
+      const user = await getUser(req);
+      const generatedPurchasedId = generateUniqueId();
+
+      const ticket = {
+        origin: origin,
+        destination: destination,
+        userid: user.id,
+        subid: null,
+        tripdate: tripdatee,
+      };
+      const insertedTicket = await db("se_project.tickets")
+        .insert(ticket)
+        .returning("*");
+
+      const transaction = {
+        amount: amount,
+        userid: user.id,
+        purchasediid: generatedPurchasedId,
+      };
+      const insertedTransaction = await db("se_project.transactions")
+        .insert(transaction)
+        .returning("*");
+        console.log("Payment done...");
+
+      return res.status(200).json({
+        ticket: insertedTicket,
+        transaction: insertedTransaction,
+      });
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not process the payment");
+    }
+  })
+
+  app.get("/api/v1/zones", async function (req, res) {
+    try {
+      const zones = await db.select("*").from("se_project.zones");
+      return res.status(200).json(zones);
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not get zone data");
+    }
+  });
+
+  //marco was here
+  
+  });
+
+
 
 
 
