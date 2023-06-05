@@ -582,6 +582,95 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
 
   //marco was here
   
+  //refund for the user
+  app.post("/api/v1/requests/refunds/user/:ticketId", async function (req, res) {
+    try {
+      const { ticketId } = req.params;
+      const user = await getUser(req);
+  
+      // Check if the user is authorized to request a refund
+      if (!user.isNormal) {
+        return res.status(401).send("Unauthorized");
+      }
+  
+      // Retrieve the ticket from the database based on the ticketId
+      const ticket = await db
+        .select("*")
+        .from("se_project.tickets")
+        .where("id", ticketId)
+        .first();
+  
+      // Check if the ticket exists
+      if (!ticket) {
+        return res.status(404).send("Ticket not found");
+      }
+  
+      // Create a refund request
+      const refundRequest = {
+        status: "pending",
+        userid: user.id,
+        refundamount: 0, // Set the refund amount based on your logic
+        ticketid: ticket.id,
+      };
+  
+      // Save the refund request to the database
+      const createdRefundRequest = await db("se_project.refund_requests")
+        .insert(refundRequest)
+        .returning("*");
+  
+      return res.status(201).json(createdRefundRequest);
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not request the refund");
+    }
+  });
+
+  app.delete("/api/v1/station/:stationId", async function (req, res) {
+    try {
+      const { stationId } = req.params;
+      const user = await getUser(req);
+  
+      if (!user.isAdmin) {
+        return res.status(401).send("Unauthorized");
+      }
+  
+      const station = await db
+        .select("*")
+        .from("se_project.stations")
+        .where("id", stationId)
+        .first();
+  
+      if (!station) {
+        return res.status(404).send("Station not found");
+      }
+  
+      const { stationtype } = station;
+  
+      if (stationtype === "normal") {
+        // Delete the routes associated with the station
+        await db("se_project.stationroutes")
+          .where("stationid", stationId)
+          .delete();
+  
+        // Delete the station from the stations table
+        await db("se_project.stations")
+          .where("id", stationId)
+          .delete();
+  
+        return res.status(200).send("Station deleted successfully");
+      } else {
+        return res.status(400).send("Invalid station type");
+      }
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not delete the station");
+    }
+  });
+
+  //sobhy's
+
+
+
   });
 
 
