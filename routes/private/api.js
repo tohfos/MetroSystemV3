@@ -285,6 +285,88 @@ app.post("/api/v1/tickets/purchase/subscription", async function (req, res) {
 
 
 
+app.post("/api/v1/senior/request", async function(req, res) {
+  try {
+    const {nationalId} = req.body;
+    const user = await getUser(req);
+  
+    // Process the senior request logic logic here
+
+    await db("se_project.senior_requests").insert({
+      userid: user.id,
+      nationalid: nationalId,
+      status: "pending"
+    })
+   // Return success response
+   return res.status(200).send("Senior request processed successfully");
+  } catch (e) {
+    console.log(e.message);
+    return res.status(400).send("Could not process senior request");
+  }
+});
+
+
+
+app.delete("/api/v1/route/:routeId", async function(req, res) {
+  try {
+    const { routeId } = req.params;
+    const user = await getUser(req);
+    const route = await db("se_project.routes").select("*").where({ id: routeId }).first();
+
+    if (!user.isAdmin) return res.status(401);
+
+    const stationIdfrom = route.fromstationid;
+    const stationidto = route.tostationid;
+
+    const fromStation = await db("se_project.stations").select("stationposition").where({ id: stationIdfrom }).first();
+    const toStation = await db("se_project.stations").select("stationposition").where({ id: stationidto }).first();
+
+    if (fromStation.stationposition === "start" || toStation.stationposition === "end") {
+      await db("se_project.routes")
+        .where("id", routeId)
+        .delete();
+
+      // Return success response
+      return res.status(200).send("Route updated successfully");
+    } else {
+      return res.status(400).send("Invalid station positions for route deletion");
+    }
+  } catch (e) {
+    console.log(e.message);
+    return res.status(400).send("Could not process route update");
+  }
+});
+
+
+
+app.put("/api/v1/route/:routeId", async function(req, res) {
+  try {
+    const {routeId} = req.params;
+    const {routeName} = req.body;
+    const user = await getUser(req);
+  
+    // Process the senior request logic logic here
+    const route=await db("se_project.routes")
+    .where("id",routeId)
+    .update({ "routename":routeName }).returning("*");
+    
+
+    // Return success response
+    return res.status(200).send("Route updated successfully");
+  } catch (e) {
+    console.log(e.message);
+    return res.status(400).send("Could not process route update");
+  }
+});
+
+
+//Gerges kan hena ^
+
+
+
+
+
+
 
 
 
