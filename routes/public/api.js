@@ -74,13 +74,40 @@ app.post("/api/v1/user", async function (req, res) {
       await db("se_project.sessions").insert(session);
       // In the response, set a cookie on the client with the name "session_cookie"
       // and the value as the UUID we generated. We also set the expiration time.
-      return res
+      let redirectUrl;
+      let responseMessage;
+
+      if(user.roleid == 2){
+        redirectUrl = "/admin";
+        responseMessage = `Login successful, Welcome Admin ${user.firstname}`;
+
+      }
+      else{
+        redirectUrl = "/user";
+        responseMessage = `Login successful, Welcome user ${user.firstname}`;
+
+      }
+
+      if(redirectUrl == "/admin"){
+        console.log("admin");
+        return res
         .cookie("session_token", token, { expires: expiresat })
         .status(200)
-        .send("login successful");
+        .send("login successful Admin");
+
+      }
+      else{
+        console.log("user");
+        return res
+        .cookie("session_token", token, { expires: expiresat })
+        .status(200).send("login successful User");
+      
+
+      }
+      
     } catch (e) {
       console.log(e.message);
-      return res.status(400).send("Could not register user");
+      return res.status(400).send("Could not login user");
     }
   });
 }
