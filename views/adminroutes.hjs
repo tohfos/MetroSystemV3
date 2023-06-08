@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Button Page</title>
+  <style>
+    .button-container {
+      text-align: center;
+      margin-top: 100px;
+    }
+
+    .button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin: 10px;
+    }
+
+    .create {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .update {
+      background-color: #2196F3;
+      color: white;
+    }
+
+    .delete {
+      background-color: #F44336;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>What action would you like to do with the routes?</h1>
+
+  <div class="button-container">
+    <button class="button create">Create</button>
+    <button class="button update">Update</button>
+    <button class="button delete">Delete</button>
+  </div>
+</body>
+</html>

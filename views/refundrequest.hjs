@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Refund Request</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: url('metro.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      padding: 40px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+    }
+
+    h1 {
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    select {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      width: 200px;
+    }
+
+    .submit-button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 4px;
+      margin-top: 20px;
+      cursor: pointer;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .submit-button:hover {
+      transform: scale(1.1);
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Select your Tickets</h1>
+    <form id="refund-form">
+      <select id="ticket-type" required>
+        <option value="" disabled selected>Select the Ticket</option>
+      </select>
+      <br><br>
+      <button type="submit" class="submit-button">Submit</button>
+    </form>
+  </div>
+
+  <script>
+    // Fetch ticket data from the API endpoint
+    fetch('https://api.example.com/tickets')
+      .then(response => response.json())
+      .then(data => {
+        const ticketSelect = document.getElementById('ticket-type');
+
+        // Create an option for each ticket and append it to the select element
+        data.forEach(ticket => {
+          const option = document.createElement('option');
+          option.value = ticket.id;
+          option.text = ticket.name;
+          ticketSelect.appendChild(option);
+        });
+      })
+      .catch(error => {
+        console.log('Error:', error);
+      });
+
+    // Handle form submission
+    document.getElementById('refund-form').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent the default form submission
+
+      const selectedTicketId = document.getElementById('ticket-type').value;
+
+      // Make the API call to request a refund
+      fetch(`https://api.example.com/api/v1/refund/${selectedTicketId}`, {
+        method: 'POST',
+        // Add any necessary headers or request body data
+      })
+        .then(response => {
+          if (response.ok) {
+            console.log('Refund request successful!');
+            // Handle the successful refund request
+          } else {
+            console.log('Refund request failed.');
+            // Handle the failed refund request
+          }
+        })
+        .catch(error => {
+          console.log('Error:', error);
+        });
+    });
+  </script>
+</body>
+</html>

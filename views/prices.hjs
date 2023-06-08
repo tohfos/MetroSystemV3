@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Prices</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: url('metro.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      padding: 40px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+    }
+
+    h1 {
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .dropdown-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dropdown-container::before,
+    .dropdown-container::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background-color: #ccc;
+    }
+
+    .from-dropdown {
+      margin-right: 10px;
+    }
+
+    select {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      width: 200px;
+    }
+
+    .submit-button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 4px;
+      margin-top: 20px;
+      cursor: pointer;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .submit-button:hover {
+      transform: scale(1.1);
+      background-color: #45a049;
+    }
+
+    .amount-label {
+      text-align: left;
+      margin-top: 20px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Select your Tickets</h1>
+    <form id="refund-form">
+      <div class="dropdown-container">
+        <div class="from-dropdown">
+          <select id="from-select" required>
+            <option value="" disabled selected>Select the From</option>
+          </select>
+        </div>
+        <div></div>
+        <div class="to-dropdown">
+          <select id="to-select" required>
+            <option value="" disabled selected>Select the To</option>
+          </select>
+        </div>
+      </div>
+      <br><br>
+      <button type="submit" class="submit-button">Submit</button>
+      <div class="amount-label">Amount: <span id="amount"></span></div>
+    </form>
+  </div>
+
+  <script>
+    // Fetch origin data from the API endpoint
+    fetch('http://localhost:3000/api/v1/tickets/origin')
+      .then(response => response.json())
+      .then(data => {
+        const fromSelect = document.getElementById('from-select');
+
+        // Create an option for each origin and append it to the select element
+        data.forEach(origin => {
+          const option = document.createElement('option');
+          option.value = origin.id;
+          option.text = origin.name;
+          fromSelect.appendChild(option);
+        });
+      })
+      .catch(error => {
+        console.log('Error:', error);
+      });
+
+    // Fetch destination data from the API endpoint
+    fetch('http://localhost:3000/api/v1/tickets/destination')
+      .then(response => response.json())
+      .then(data => {
+        const toSelect = document.getElementById('to-select');
+
+        // Create an option for each destination and append it to the select element
+        data.forEach(destination => {
+          const option = document.createElement('option');
+          option.value = destination.id;
+          option.text = destination.name;
+          toSelect.appendChild(option);
+        });
+      })
+      .catch(error => {
+        console.log('Error:', error);
+      });
+
+    // Handle form submission
+    document.getElementById('refund-form').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent the default form submission
+
+      const fromId = document.getElementById('from-select').value;
+      const toId = document.getElementById('to-select').value;
+
+      // Make the API call to fetch ticket prices
+      fetch(`http://localhost:3000/api/v1/tickets/price/${fromId}/${toId}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Ticket prices:', data);
+          const amountLabel = document.getElementById('amount');
+          amountLabel.textContent = data.price; // Set the amount value
+        })
+        .catch(error => {
+          console.log('Error:', error);
+        });
+    });
+  </script>
+</body>
+</html>

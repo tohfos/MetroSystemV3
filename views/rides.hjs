@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Metro Map</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: url('metro.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      backdrop-filter: blur(5px);
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .map-container {
+      background-color: rgba(255, 255, 255, 0.8);
+      width: 700px;
+      height: 700px;
+    }
+
+    img {
+      opacity: 0.8;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="map-container">
+      <img src="metro-map.png" alt="Metro Map">
+    </div>
+  </div>
+</body>
+</html>

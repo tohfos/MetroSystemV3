@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: url('metro.jpeg') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 50px;
+      position: relative;
+      animation: moveWelcome 2s infinite alternate;
+      color: #fff;
+      font-weight: 300;
+      font-size: 48px;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      font-family: 'Times New Roman', Times, serif;
+    }
+
+    @keyframes moveWelcome {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(20px);
+      }
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: rgb(195, 198, 98);
+      padding: 10px 20px;
+    }
+
+    .header-logo {
+      display: inline-block;
+      width: 100px;
+      height: 87px;
+    }
+
+    .header-button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .header-button:hover {
+      transform: scale(1.1);
+      background-color: #45a049;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      margin-top: 70px;
+      height: 200px;
+      opacity: 1;
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    .button {
+      display: block;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 4px;
+      margin-right: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .button:hover {
+      transform: scale(1.1);
+      background-color: #45a049;
+    }
+
+    .video-container {
+      max-width: 800px;
+      margin: 0 auto;
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    video {
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .page-transition {
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $("button.header-button").click(function(e) {
+        e.preventDefault();
+        goToResetPassword();
+      });
+
+      $("button.subscription-button").click(function(e) {
+        e.preventDefault();
+        goToUserSubscription();
+      });
+
+      $("button.tickets-button").click(function(e) {
+        e.preventDefault();
+        goToTickets();
+      });
+
+      $("button.requests-button").click(function(e) {
+        e.preventDefault();
+        goToRequests();
+      });
+
+      $("button.prices-button").click(function(e) {
+        e.preventDefault();
+        goToPrices();
+      });
+
+      $("button.rides-button").click(function(e) {
+        e.preventDefault();
+        goToRides();
+      });
+
+      function goToResetPassword() {
+        $(".container").addClass("page-transition");
+        setTimeout(function() {
+          window.location.href = "/passwordreset"; // Replace with the actual URL of the password reset page
+        }, 500); // Adjust the delay (in milliseconds) to match the animation duration
+      }
+
+      function goToUserSubscription() {
+        $(".container").addClass("page-transition");
+        setTimeout(function() {
+          console.log("entered");
+          window.location.href = "/usersubscription"; // Replace with the actual URL of the user subscription page
+        }, 500); // Adjust the delay (in milliseconds) to match the animation duration
+      }
+
+      function goToTickets() {
+        $(".container").addClass("page-transition");
+        setTimeout(function() {
+          window.location.href = "/ticket"; // Replace with the actual URL of the tickets page
+        }, 500); // Adjust the delay (in milliseconds) to match the animation duration
+      }
+
+      function goToRequests() {
+        $(".container").addClass("page-transition");
+        setTimeout(function() {
+          window.location.href = "/request"; // Replace with the actual URL of the requests page
+        }, 500); // Adjust the delay (in milliseconds) to match the animation duration
+      }
+
+      function goToPrices() {
+        $(".container").addClass("page-transition");
+        setTimeout(function() {
+          window.location.href = "/prices"; // Replace with the actual URL of the prices page
+        }, 500); // Adjust the delay (in milliseconds) to match the animation duration
+      }
+
+      function goToRides() {
+        $(".container").addClass("page-transition");
+        setTimeout(function() {
+          window.location.href = "/rides"; // Replace with the actual URL of the rides page
+        }, 500); // Adjust the delay (in milliseconds) to match the animation duration
+      }
+
+      function removePageTransition() {
+        $(".container").removeClass("page-transition");
+      }
+
+      // Remove page transition class after animation
+      $(".container").on("transitionend", removePageTransition);
+    });
+  </script>
+</head>
+<body>
+  <div class="header">
+    <img class="header-logo" src="logo.png" alt="Logo">
+    <button class="header-button">Reset Password</button>
+  </div>
+
+  <h1>Welcome User</h1>
+
+  <div class="container">
+    <button class="button subscription-button">Subscriptions</button>
+    <button class="button prices-button">Prices</button>
+    <button class="button rides-button">Rides</button>
+    <button class="button tickets-button">Tickets</button>
+    <button class="button requests-button">Requests</button>
+  </div>
+
+  <div class="video-container">
+    <video autoplay controls>
+      <source src="metro1.mp4" type="video/mp4">
+      <source src="metro1.webm" type="video/webm">
+      <source src="metro1.ogg" type="video/ogg">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+</body>
+</html>
