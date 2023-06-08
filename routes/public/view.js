@@ -11,4 +11,51 @@ module.exports = function(app) {
     const stations = await db.select('*').from('se_project.stations');
     return res.render('register', { stations });
   });
+
+  app.get('/login', function(req, res) {
+    return res.render('login');
+  });
+
+  app.get('/admin', function(req, res) {
+    return res.render('admin');
+  });
+
+  app.get('/adminstations', function(req, res) {
+
+    return res.render('adminstations');
+  });
+
+  app.get('/adminroutes', function(req, res) {
+
+    return res.render('adminroutes');
+  });
+  app.get('/userdashboard', function(req, res) { //
+    return res.render('userdashboard');
+  });
+  app.get('/passwordreset', function(req, res) {
+    return res.render('passwordreset');//
+  });
+
+  app.get('/prices', function(req, res) {
+    return res.render('prices');
+  });
+  app.get('/request', function(req, res) {
+    return res.render('request');
+  });
+  app.get('/rides', function(req, res) {
+    return res.render('rides');
+  });
+  app.get('/seniorrequest', function(req, res) {
+    return res.render('seniorrequest');
+  });
+  app.get('/ticket', function(req, res) {
+    return res.render('ticket');
+  });
+  app.get('/usersubscription', function(req, res) {
+  return res.render('usersubscription');
+  });
+  app.get('/refundrequest', function(req, res) {
+    return res.render('refundrequest');
+    });
+  
 };
