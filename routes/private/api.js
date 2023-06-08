@@ -762,6 +762,96 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
 
   });
 
+  app.get("/api/v1/tickets/price/:originId&:destinationId", async function (req, res) {
+  const originId = parseInt(req.params.originId);
+  const destinationId = parseInt(req.params.destinationId);
+  console.log(originId);
+  console.log(destinationId);
+  const rows = await db.select(db.raw('COUNT(*)')).from('se_project.stations');
+  
+  //convert rows to integer
+  const NumberOfStations = parseInt(rows[0].count);
+  
+
+  const outMatrix=await generateMatrix(NumberOfStations,originId,destinationId);
+  const SPPM = floydWarshall(outMatrix); //shortest path matrix
+ try{
+  const NumberOfPassedStations = SPPM[originId-1][destinationId-1];
+  if(NumberOfPassedStations==Infinity){
+    return res.status(400).send("There is no route between the two stations");
+  }
+  const price = NumberOfPassedStations * 5;
+  return res.status(200).json(price);
+
+
+ }
+  catch(e){
+    console.log(e.message);
+    return res.status(400).send("one of your stations is not found");
+  }
+  
+
+
+  
+
+});
+
+async function generateMatrix(NumberOfStations) {
+  
+  const StationsMatrix = [];
+  const routes = await db.select("*").from("se_project.routes");
+
+
+  for (let i = 0; i < NumberOfStations; i++) {
+     StationsMatrix[i]= [];
+    for (let j = 0; j < NumberOfStations; j++) {
+      if(i==j){
+        StationsMatrix[i][j] = 0;//distance from a station to itself is 0
+      }else{
+        StationsMatrix[i][j] = Infinity;
+      }
+
+    }
+    
+  }
+
+  
+
+  
+  for (let i = 0; i < NumberOfStations; i++) {
+    for (let j = 0; j < NumberOfStations; j++) {
+      const Route = routes.find((route) => route.fromstationid === (i + 1) && route.tostationid === (j + 1));
+
+      if (Route) {
+        console.log("found route between ",i+1," and ",j+1);
+        StationsMatrix[i][j] = 1;
+      }
+    }
+  }
+
+  return StationsMatrix;
+
+  
+}
+
+
+function floydWarshall(StationsMatrix) {
+  const n = StationsMatrix.length;
+  const dist = [...StationsMatrix];
+
+  for (let k = 0; k < n; k++) {
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        if (dist[i][k] !== Infinity && dist[k][j] !== Infinity && dist[i][k] + dist[k][j] < dist[i][j]) {
+          dist[i][j] = dist[i][k] + dist[k][j];
+        }
+      }
+    }
+  }
+
+  return dist;
+}
+
 
 
 
