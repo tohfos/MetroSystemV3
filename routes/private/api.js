@@ -3,70 +3,7 @@ const { v4 } = require("uuid");
 const db = require("../../connectors/db");
 const roles = require("../../constants/roles");
 const {getSessionToken}=require('../../utils/session')
-class QuadrupleLinkedListNode {
-  constructor(data) {
-    this.data = data;
-    this.prev1 = null;
-    this.next1 = null;
-    this.prev2 = null;
-    this.next2 = null;
-  }
-}
 
-class QuadrupleLinkedList {
-  constructor() {
-    this.head1 = null;
-    this.head2 = null;
-    this.tail1 = null;
-    this.tail2 = null;
-  }
-
-  append(data) {
-    const newNode = new QuadrupleLinkedListNode(data);
-
-    if (!this.head1) {
-      this.head1 = newNode;
-      this.tail1 = newNode;
-    } else {
-      this.tail1.next1 = newNode;
-      newNode.prev1 = this.tail1;
-      this.tail1 = newNode;
-    }
-
-    if (!this.head2) {
-      this.head2 = newNode;
-      this.tail2 = newNode;
-    } else {
-      this.tail2.next2 = newNode;
-      newNode.prev2 = this.tail2;
-      this.tail2 = newNode;
-    }
-
-    return newNode;
-  }
-  printMap() {
-    console.log("-------------ENTERED PRINT MAP----------");
-    let current;
-    if(!this.head1){
-      current = this.head2;
-    }
-    else if (!this.head2) {
-       current = this.head1;
-    }
-    console.log("current", current);
-    while (current) {
-      console.log("current2", current);
-      console.log(`Station ID: ${current.data.id}`);
-      console.log(`Station Name: ${current.data.stationname}`);
-      console.log(`Next 1 Station ID: ${current.next1 ? current.next1.data.id : null}`);
-      console.log(`Next 2 Station ID: ${current.next2 ? current.next2.data.id : null}`);
-      console.log(`Prev 1 Station ID: ${current.prev1 ? current.prev1.data.id : null}`);
-      console.log(`Prev 2 Station ID: ${current.prev2 ? current.prev2.data.id : null}`);
-      console.log("------------------------------");
-      current = current.next1;
-    }
-  }
-}
 
 
 
