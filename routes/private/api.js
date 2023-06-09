@@ -549,52 +549,55 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
     });
     
     
-
-  //pay for a ticket
-  //
-  app.post("/api/v1/payment/ticket", async function (req, res) {
-    try {
-      const {
-        creditCardNumber,
-        holderName,
-        amount,
-        origin,
-        destination,
-        tripdatee,
-      } = req.body;
-      const user = await getUser(req);
-      const generatedPurchasedId = generateUniqueId();
-
-      const ticket = {
-        origin: origin,
-        destination: destination,
-        userid: user.id,
-        subid: null,
-        tripdate: tripdatee,
-      };
-      const insertedTicket = await db("se_project.tickets")
-        .insert(ticket)
-        .returning("*");
-
-      const transaction = {
-        amount: amount,
-        userid: user.id,
-        purchasediid: generatedPurchasedId,
-      };
-      const insertedTransaction = await db("se_project.transactions")
-        .insert(transaction)
-        .returning("*");
-        console.log("Payment done...");
-
-      return res.status(200).json({
-        ticket: insertedTicket,
-        transaction: insertedTransaction,
-      });
-    } catch (e) {
-      console.log(e.message);
-      return res.status(400).send("Could not process the payment");
-    }
-  })
+    app.post('/api/v1/payment/ticket', async function (req, res) {
+      try {
+        const {
+          creditCardNumber,
+          holderName,
+          amount,
+          origin,
+          destination,
+          tripdatee,
+        } = req.body;
+        const user = await getUser(req);
+        const generatedPurchasedId = generateUniqueId();
+    
+        // Validate the "amount" property
+        if (!amount || typeof amount !== 'number' || isNaN(amount)) {
+          return res.status(400).send('Invalid amount');
+        }
+    
+        const ticket = {
+          origin: origin,
+          destination: destination,
+          userid: user.userid,
+          subid: null,
+          tripdate: tripdatee,
+        };
+        const insertedTicket = await db('se_project.tickets')
+          .insert(ticket)
+          .returning('*');
+    
+        const transaction = {
+          amount: amount,
+          userid: user.userid,
+          purchasediid: generatedPurchasedId,
+        };
+        const insertedTransaction = await db('se_project.transactions')
+          .insert(transaction)
+          .returning('*');
+        console.log('Payment done...');
+    
+        return res.status(200).json({
+          ticket: insertedTicket,
+          transaction: insertedTransaction,
+        });
+      } catch (e) {
+        console.log(e.message);
+        return res.status(400).send('Could not process the payment');
+      }
+    });
+    
 
   app.get("/api/v1/zones", async function (req, res) {
     try {
@@ -634,8 +637,8 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
       // Create a refund request
       const refundRequest = {
         status: "pending",
-        userid: user.id,
-        refundamount: 0, // Set the refund amount based on your logic
+        userid: user.userid,
+        refundamount: 5, // Set the refund amount based on your logic
         ticketid: ticket.id,
       };
   
@@ -897,7 +900,5 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
   
     return dist;
   }
-
-  
 
 };
