@@ -99,10 +99,12 @@ module.exports = function (app) {
   });
   
 
-  app.put("/api/v1/station/:stationId",async function(req,res){
-     
-    const {stationname}=req.body;
-    if(!stationname){
+  app.put("/api/v1/station/0",async function(req,res){
+    
+    const oldStationName=req.body.oldStationName;
+    const newStationName = req.body.newStationName
+    
+    if(!oldStationName || !newStationName){
       return res.status(400).send("name is required");
     }
     //check user authenticity
@@ -112,8 +114,8 @@ module.exports = function (app) {
     }
 
     //get the station from the database using the stationId
-    const stationId=req.params.stationId;
-    const station=await db.select("*").from("se_project.stations").where("id",stationId).first();
+  
+    const station=await db.select("*").from("se_project.stations").where("stationname",oldStationName).first();
     if(isEmpty(station)){
       return res.status(404).send("Station not found");
     }
@@ -122,13 +124,13 @@ module.exports = function (app) {
     
     
     const newStation={
-      stationname:stationname,
+      stationname:newStationName,
       
       
       
     }
     try{
-      const station=await db("se_project.stations").update(newStation).where("id",stationId).returning("*");
+      const station=await db("se_project.stations").update(newStation).where("stationname",oldStationName).returning("*");
       
       return res.status(200).json("updated station name");
 
