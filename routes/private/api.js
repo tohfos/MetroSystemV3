@@ -565,7 +565,7 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
       const ticket = {
         origin: origin,
         destination: destination,
-        userid: user.id,
+        userid: user.userid,
         subid: null,
         tripdate: tripdatee,
       };
@@ -575,7 +575,7 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
 
       const transaction = {
         amount: amount,
-        userid: user.id,
+        userid: user.userid,
         purchasediid: generatedPurchasedId,
       };
       const insertedTransaction = await db("se_project.transactions")
@@ -631,9 +631,9 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
       // Create a refund request
       const refundRequest = {
         status: "pending",
-        userid: user.id,
-        refundamount: 0, // Set the refund amount based on your logic
-        ticketid: ticket.id,
+        userid: user.userid,
+        refundamount: 5, // Set the refund amount based on your logic
+        ticketid: ticket.userid,
       };
   
       // Save the refund request to the database
@@ -870,4 +870,22 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
     return dist;
   }
 
+
+  //get user tickets
+  app.get('/api/v1/tickets', async function(req, res) {
+  try {
+    const user = await getUser(req);
+
+    // Retrieve the user's tickets from the database
+    const tickets = await db
+      .select('*')
+      .from('se_project.tickets')
+      .where('userid', user.id);
+
+    return res.status(200).json(tickets);
+  } catch (e) {
+    console.log(e.message);
+    return res.status(400).send('Could not retrieve tickets');
+  }
+});
 };
