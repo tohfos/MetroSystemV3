@@ -477,9 +477,7 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
       }
   
       // Check if the position is valid (start or end)
-      if (station.stationposition !== "start" && station.stationposition !== "end") {
-        return res.status(400).send("Invalid position");
-      }
+      
   
       // Create the route
       const newRoute = {
@@ -506,10 +504,13 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
       return res.status(400).send("Could not create the route");
     }
   });
+
+
+
     //pay for sub online
 
     //helper method
-    function generateUniqueId() {
+    function generateUniqueId() { 
       const timestamp = new Date().getTime();
       const random = Math.floor(Math.random() * 1000);
       return `${timestamp}-${random}`;
@@ -548,6 +549,7 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
     });
     
     
+<<<<<<< HEAD
 
   //pay for a ticket
   //
@@ -672,6 +674,57 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
 
   
 
+=======
+    app.post('/api/v1/payment/ticket', async function (req, res) {
+      try {
+        const {
+          creditCardNumber,
+          holderName,
+          amount,
+          origin,
+          destination,
+          tripdatee,
+        } = req.body;
+        const user = await getUser(req);
+        const generatedPurchasedId = generateUniqueId();
+    
+        // Validate the "amount" property
+        if (!amount || typeof amount !== 'number' || isNaN(amount)) {
+          return res.status(400).send('Invalid amount');
+        }
+    
+        const ticket = {
+          origin: origin,
+          destination: destination,
+          userid: user.userid,
+          subid: null,
+          tripdate: tripdatee,
+        };
+        const insertedTicket = await db('se_project.tickets')
+          .insert(ticket)
+          .returning('*');
+    
+        const transaction = {
+          amount: amount,
+          userid: user.userid,
+          purchasediid: generatedPurchasedId,
+        };
+        const insertedTransaction = await db('se_project.transactions')
+          .insert(transaction)
+          .returning('*');
+        console.log('Payment done...');
+    
+        return res.status(200).json({
+          ticket: insertedTicket,
+          transaction: insertedTransaction,
+        });
+      } catch (e) {
+        console.log(e.message);
+        return res.status(400).send('Could not process the payment');
+      }
+    });
+    
+>>>>>>> 5b370d52ae1c69ad6c1cd661b06cbd086d412624
 
   app.get("/api/v1/zones", async function (req, res) {
     try {
@@ -711,8 +764,8 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
       // Create a refund request
       const refundRequest = {
         status: "pending",
-        userid: user.id,
-        refundamount: 0, // Set the refund amount based on your logic
+        userid: user.userid,
+        refundamount: 5, // Set the refund amount based on your logic
         ticketid: ticket.id,
       };
   
@@ -728,7 +781,7 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
     }
   });
 
-  app.delete("/api/v1/station/0", async function (req, res) {
+  app.delete("/api/v1/station/:stationId", async function (req, res) {
     try {
       const { stationId } = req.params;
       const user = await getUser(req);

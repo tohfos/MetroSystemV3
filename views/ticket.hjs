@@ -82,16 +82,42 @@
     <h1>Purchase a Ticket</h1>
 
     <div class="form-group">
+<<<<<<< HEAD
       <label for="from">From</label>
       <select id="from" required>
         <option value="" disabled selected>Select the From</option>
+=======
+      <label for="from-select">From</label>
+      <select id="from-select" required>
+        <option value="" disabled selected>Select the From</option>
+        <option value="s1">s1</option>
+        <option value="s2">s2</option>
+        <option value="s3">s3</option>
+        <option value="s4">s4</option>
+        <option value="s5">s5</option>
+        <option value="s6">s6</option>
+        <option value="s7">s7</option>
+>>>>>>> 5b370d52ae1c69ad6c1cd661b06cbd086d412624
       </select>
     </div>
 
     <div class="form-group">
+<<<<<<< HEAD
       <label for="to">To</label>
       <select id="to" required>
         <option value="" disabled selected>Select the To</option>
+=======
+      <label for="to-select">To</label>
+      <select id="to-select" required>
+        <option value="" disabled selected>Select the To</option>
+        <option value="s1">s1</option>
+        <option value="s2">s2</option>
+        <option value="s3">s3</option>
+        <option value="s4">s4</option>
+        <option value="s5">s5</option>
+        <option value="s6">s6</option>
+        <option value="s7">s7</option>
+>>>>>>> 5b370d52ae1c69ad6c1cd661b06cbd086d412624
       </select>
     </div>
 
@@ -126,6 +152,7 @@
         window.location.href = "purchasewithsubscription";
       }
 
+<<<<<<< HEAD
       // Fetch stations from the backend and populate the dropdown lists
       fetch('/api/v1/stations')
         .then(response => response.json())
@@ -155,6 +182,11 @@
       document.getElementById("purchaseButton").addEventListener("click", function() {
         var from = document.getElementById("from").value;
         var to = document.getElementById("to").value;
+=======
+      document.getElementById("purchaseButton").addEventListener("click", function() {
+        var from = document.getElementById("from-select").value;
+        var to = document.getElementById("to-select").value;
+>>>>>>> 5b370d52ae1c69ad6c1cd661b06cbd086d412624
         var date = document.getElementById("date").value;
         var creditCardNumber = document.getElementById("creditCardNumber").value;
         var nameOnCard = document.getElementById("nameOnCard").value;
@@ -164,7 +196,11 @@
           method: "POST",
           headers: {
             "Content-Type": "application/json"
+<<<<<<< HEAD
           },
+=======
+            },
+>>>>>>> 5b370d52ae1c69ad6c1cd661b06cbd086d412624
           body: JSON.stringify({
             origin: from,
             destination: to,
@@ -176,6 +212,10 @@
         .then(function(response) {
           if (response.ok) {
             // Handle successful purchase
+<<<<<<< HEAD
+=======
+            console.log("success")
+>>>>>>> 5b370d52ae1c69ad6c1cd661b06cbd086d412624
             document.getElementById("purchaseMessage").textContent = "Ticket purchased successfully.";
             document.getElementById("purchaseMessage").style.display = "block";
           } else {

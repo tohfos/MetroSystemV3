@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Delete station</title>
+  <title>Delete Station</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -29,7 +29,7 @@
       margin-bottom: 20px;
     }
 
-    select {
+    input[type="text"] {
       padding: 10px;
       font-size: 16px;
       border-radius: 4px;
@@ -58,16 +58,40 @@
 </head>
 <body>
   <div class="container">
-    <h1>Select the station</h1>
-    <form id="refund-form">
-      <select id="station" required>
-        <option value="" disabled selected>Select the Station</option>
-      </select>
+    <h1>Enter the Station ID</h1>
+    <form id="delete-station-form">
+      <input type="text" id="stationId" placeholder="Station ID" required>
       <br><br>
       <button type="submit" class="submit-button">Submit</button>
     </form>
   </div>
 
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      // Submit form
+      $("#delete-station-form").submit(function(event) {
+        event.preventDefault();
 
+        const stationId = $("#stationId").val();
+
+        $.ajax({
+          type: "DELETE",
+          url: "/api/v1/station/" + stationId,
+          success: function(response) {
+            alert("Station deleted successfully");
+            console.log(response);
+            window.location.href = "/adminstations";
+
+
+          },
+          error: function(error) {
+            alert("Error deleting station");
+            console.log(error);
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>

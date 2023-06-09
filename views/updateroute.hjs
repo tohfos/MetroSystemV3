@@ -59,16 +59,36 @@
 <body>
   <div class="container">
     <h1>Enter the details of the Route</h1>
-    <form>
-      <input type="text" id="routeName" placeholder="Route Name" required>
-      <br><br>
-      <select id="stationType" required>
-        <option value="" disabled selected>Select Route</option>
-        
-      </select>
-      <br><br>
+    <form id="routef">
+      <input type="text" id="routeId" placeholder="Route id" required>
+      <input type="text" id="routeName" placeholder="Route name" required>
+
       <button type="submit" class="submit-button">Submit</button>
     </form>
   </div>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $("#routef").submit(function(e) {
+        e.preventDefault();
+        var routeId = $("#routeId").val();
+        var routeName = $("#routeName").val();
+        $.ajax({
+          url: "/api/v1/route/" + routeId,
+          type: "PUT",
+          data: {
+            routeName: routeName,
+          },
+          success: function(data) {
+            alert("Route Updated Successfully");
+            window.location.href = "/adminroutes";
+          },
+          error: function() {
+            alert("Could not update Route");
+          },
+        });
+      });
+    });
+  </script>
 </body>
 </html>

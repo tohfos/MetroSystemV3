@@ -56,6 +56,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h1>Select your Tickets</h1>
@@ -69,17 +70,20 @@
   </div>
 
   <script>
+    // Declare ticketSelect variable outside the fetch callback
+    let ticketSelect;
+
     // Fetch ticket data from the API endpoint
-    fetch('https://api.example.com/tickets')
+    fetch('/api/v1/tickets')
       .then(response => response.json())
       .then(data => {
-        const ticketSelect = document.getElementById('ticket-type');
+        ticketSelect = document.getElementById('ticket-type');
 
         // Create an option for each ticket and append it to the select element
         data.forEach(ticket => {
           const option = document.createElement('option');
           option.value = ticket.id;
-          option.text = ticket.name;
+          option.text = `${ticket.origin} to ${ticket.destination} on ${ticket.tripdate}`;
           ticketSelect.appendChild(option);
         });
       })
@@ -91,10 +95,12 @@
     document.getElementById('refund-form').addEventListener('submit', function(event) {
       event.preventDefault(); // Prevent the default form submission
 
-      const selectedTicketId = document.getElementById('ticket-type').value;
+      const selectedTicketId = ticketSelect.value;
+      console.log("-------");
+      console.log(ticketSelect);
 
       // Make the API call to request a refund
-      fetch(`https://api.example.com/api/v1/refund/${selectedTicketId}`, {
+      fetch(`/api/v1/requests/refunds/user/${selectedTicketId}`, {
         method: 'POST',
         // Add any necessary headers or request body data
       })
