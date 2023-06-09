@@ -551,49 +551,127 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
 
   //pay for a ticket
   //
-  app.post("/api/v1/payment/ticket", async function (req, res) {
+  app.get("/api/v1/tickets", async function (req, res) {
     try {
-      const {
-        creditCardNumber,
-        holderName,
-        amount,
-        origin,
-        destination,
-        tripdatee,
-      } = req.body;
-      const user = await getUser(req);
-      const generatedPurchasedId = generateUniqueId();
-
-      const ticket = {
-        origin: origin,
-        destination: destination,
-        userid: user.id,
-        subid: null,
-        tripdate: tripdatee,
-      };
-      const insertedTicket = await db("se_project.tickets")
-        .insert(ticket)
-        .returning("*");
-
-      const transaction = {
-        amount: amount,
-        userid: user.id,
-        purchasediid: generatedPurchasedId,
-      };
-      const insertedTransaction = await db("se_project.transactions")
-        .insert(transaction)
-        .returning("*");
-        console.log("Payment done...");
-
-      return res.status(200).json({
-        ticket: insertedTicket,
-        transaction: insertedTransaction,
-      });
+      const tickets = await db("se_project.tickets").select("id");
+      return res.status(200).json(tickets);
     } catch (e) {
       console.log(e.message);
-      return res.status(400).send("Could not process the payment");
+      return res.status(500).send("Error retrieving tickets");
     }
-  })
+  });
+  
+  app.get("/api/v1/stations", async function (req, res) {
+    try {
+      const stations = await db("se_project.stations")
+        .select("stationname")
+        .distinct();
+  
+      return res.status(200).json(stations);
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not retrieve stations");
+    }
+  });
+
+  app.get('/api/v1/completedrides', (req, res) => {
+    const currentDate = new Date();
+  
+    // Assuming you are using a PostgreSQL database
+    // You may need to adjust the SQL query based on the specific database you are using
+    const query = `
+      SELECT *
+      FROM se_project.rides
+      WHERE tripdate < $1
+    `;
+  
+    // Execute the query
+    pool.query(query, [currentDate], (error, results) => {
+      if (error) {
+        console.error('Error executing query', error);
+        return res.status(500).json({ error: 'An unexpected error occurred.' });
+      }
+  
+      // Return the results
+      res.json(results.rows);
+    });
+  });
+
+
+
+
+
+
+  
+  // Start the server
+  app.listen(3000, () => {
+    console.log('Server is running on port 3000');
+  });
+  
+  
+  
+  app.post("/api/v1/payment/ticket", async function (req, res) {
+  try {
+    const {
+      creditCardNumber,
+      holderName,
+      amount,
+      origin,
+      destination,
+      tripdatee,
+    } = req.body;
+    const user = await getUser(req);
+    const generatedPurchasedId = generateUniqueId();
+
+    const ticket = {
+      origin: origin,
+      destination: destination,
+      userid: user.id,
+      subid: null,
+      tripdate: tripdatee,
+    };
+
+    const insertedTicket = await db("se_project.tickets")
+      .insert(ticket)
+      .returning("*");
+
+    // Add the ticket data to the rides table
+    const ride = {
+      origin: ticket.origin,
+      destination: ticket.destination,
+      tripdate: ticket.tripdate,
+      ticketid: insertedTicket[0].id, // Assuming the primary key of the tickets table is named 'id'
+    };
+
+    const insertedRide = await db("se_project.rides")
+      .insert(ride)
+      .returning("*");
+
+    const transaction = {
+      amount: amount,
+      userid: user.id,
+      purchasediid: generatedPurchasedId,
+    };
+    const insertedTransaction = await db("se_project.transactions")
+      .insert(transaction)
+      .returning("*");
+
+    console.log("Payment done...");
+
+    return res.status(200).json({
+      ticket: insertedTicket,
+      ride: insertedRide,
+      transaction: insertedTransaction,
+    });
+  } catch (e) {
+    console.log(e.message);
+    return res.status(400).send("Could not process the payment");
+  }
+});
+
+
+  
+
 
   app.get("/api/v1/zones", async function (req, res) {
     try {

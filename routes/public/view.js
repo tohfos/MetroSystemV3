@@ -69,6 +69,16 @@ module.exports = function(app) {
   app.get('/createroute', function(req, res) {
     return res.render('createroute');
   });
+
+
+  app.get('/upcommingrides', function(req, res) {
+    return res.render('upcommingrides');
+  });
+  app.get('/completedrides', function(req, res) {
+    return res.render('completedrides');
+  });
+
+
   app.get('/updateroute', function(req, res) {
     return res.render('updateroute');
   });

@@ -37,8 +37,6 @@
       margin-bottom: 5px;
     }
 
-    .form-group input[type="text"],
-    .form-group input[type="number"],
     .form-group select {
       width: 100%;
       padding: 8px;
@@ -68,6 +66,15 @@
       display: inline-block;
       margin-right: 10px;
     }
+
+    .purchase-message {
+      display: none;
+      text-align: center;
+      background-color: #4CAF50;
+      color: #fff;
+      padding: 10px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -76,21 +83,21 @@
 
     <div class="form-group">
       <label for="from">From</label>
-      <select id="from">
-        <!-- options here -->
+      <select id="from" required>
+        <option value="" disabled selected>Select the From</option>
       </select>
     </div>
 
     <div class="form-group">
       <label for="to">To</label>
-      <select id="to">
-        <!-- options here -->
+      <select id="to" required>
+        <option value="" disabled selected>Select the To</option>
       </select>
     </div>
 
     <div class="form-group">
       <label for="date">Date</label>
-      <input type="date" id="date">
+      <input type="date" id="date" required>
     </div>
 
     <div class="divider"></div>
@@ -99,28 +106,90 @@
 
     <div class="form-group">
       <label for="creditCardNumber">Credit Card Number</label>
-      <input type="text" id="creditCardNumber" placeholder="Enter your credit card number">
+      <input type="text" id="creditCardNumber" placeholder="Enter your credit card number" required>
     </div>
 
     <div class="form-group">
       <label for="nameOnCard">Name on Card</label>
-      <input type="text" id="nameOnCard" placeholder="Enter the name on your card">
-    </div>
-
-    <div class="form-group">
-      <label for="cvv">CVV</label>
-      <input type="text" id="cvv" placeholder="Enter the CVV code">
+      <input type="text" id="nameOnCard" placeholder="Enter the name on your card" required>
     </div>
 
     <div>
-      <button class="button">Purchase</button>
+      <button class="button" id="purchaseButton">Purchase</button>
       <button class="button" onclick="goToPurchaseWithSubscription()">Purchase with Subscription</button>
     </div>
+
+    <div id="purchaseMessage" class="purchase-message"></div>
 
     <script>
       function goToPurchaseWithSubscription() {
         window.location.href = "purchasewithsubscription";
       }
+
+      // Fetch stations from the backend and populate the dropdown lists
+      fetch('/api/v1/stations')
+        .then(response => response.json())
+        .then(stations => {
+          // Populate the 'From' dropdown list
+          const fromDropdown = document.getElementById('from');
+          stations.forEach(station => {
+            const option = document.createElement('option');
+            option.value = station.stationname;
+            option.textContent = station.stationname;
+            fromDropdown.appendChild(option);
+          });
+
+          // Populate the 'To' dropdown list
+          const toDropdown = document.getElementById('to');
+          stations.forEach(station => {
+            const option = document.createElement('option');
+            option.value = station.stationname;
+            option.textContent = station.stationname;
+            toDropdown.appendChild(option);
+          });
+        })
+        .catch(error => {
+          console.log(error);
+        });
+
+      document.getElementById("purchaseButton").addEventListener("click", function() {
+        var from = document.getElementById("from").value;
+        var to = document.getElementById("to").value;
+        var date = document.getElementById("date").value;
+        var creditCardNumber = document.getElementById("creditCardNumber").value;
+        var nameOnCard = document.getElementById("nameOnCard").value;
+
+        // Send data to the backend using fetch or other methods
+        fetch("/api/v1/payment/ticket", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            origin: from,
+            destination: to,
+            tripdatee: date,
+            creditCardNumber: creditCardNumber,
+            holderName: nameOnCard
+          })
+        })
+        .then(function(response) {
+          if (response.ok) {
+            // Handle successful purchase
+            document.getElementById("purchaseMessage").textContent = "Ticket purchased successfully.";
+            document.getElementById("purchaseMessage").style.display = "block";
+          } else {
+            // Handle purchase error
+            console.error('Failed to purchase ticket');
+            // Show error message to the user
+          }
+        })
+        .catch(function(error) {
+          // Handle network or other errors
+          console.error('Error:', error);
+          // Show error message to the user
+        });
+      });
     </script>
   </div>
 </body>

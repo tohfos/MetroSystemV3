@@ -20,22 +20,51 @@
 
     .map-container {
       background-color: rgba(255, 255, 255, 0.8);
-      width: 700px;
-      height: 700px;
+      width: 370px;
+      height: 200px;
     }
 
-    img {
-      opacity: 0.8;
-      width: 100%;
+    .buttons-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
       height: 100%;
+    }
+
+    .button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 0 10px;
+    }
+
+    .button:hover {
+      background-color: #45a049;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="map-container">
-      <img src="metro-map.png" alt="Metro Map">
+      <div class="buttons-container">
+        <button class="button" onclick="goToUpcomingRides()">Upcoming Rides</button>
+        <button class="button" onclick="goToCompletedRides()">Completed Rides</button>
+      </div>
     </div>
   </div>
+
+  <script>
+    function goToUpcomingRides() {
+      window.location.href = "/upcommingrides";
+    }
+
+    function goToCompletedRides() {
+      window.location.href = "/completedrides";
+    }
+  </script>
 </body>
 </html>
