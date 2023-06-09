@@ -654,7 +654,7 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
     }
   });
 
-  app.delete("/api/v1/station/0", async function (req, res) {
+  app.delete("/api/v1/station/:stationId", async function (req, res) {
     try {
       const { stationId } = req.params;
       const user = await getUser(req);
