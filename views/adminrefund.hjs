@@ -1,1 +1,112 @@
-hello
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Refund Requests</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: url('metro.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      padding: 40px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+    }
+
+    h1 {
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      width: 200px;
+    }
+
+    select {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      width: 200px;
+    }
+
+    .submit-button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 4px;
+      margin-top: 20px;
+      cursor: pointer;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .submit-button:hover {
+      transform: scale(1.1);
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Admin Refund Requests</h1>
+    <form id="admin-refund-requests-form">
+      <input type="text" id="requestId" placeholder="Request ID" required>
+      <br><br>
+      <select id="refundStatus" required>
+        <option value="">Select Refund Status</option>
+        <option value="accepted">Accepted</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <br><br>
+      <button type="submit" class="submit-button">Submit</button>
+    </form>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      // Submit form
+      $("#admin-refund-requests-form").submit(function(event) {
+        event.preventDefault();
+
+        const requestId = $("#requestId").val();
+        const refundStatus = $("#refundStatus").val();
+
+        $.ajax({
+          type: "PUT",
+          url: "/api/v1/requests/refunds/" + requestId,
+          data: {
+            refundstatus: refundStatus
+          },
+          success: function(response) {
+            alert("Refund request updated successfully");
+            console.log(response);
+          },
+          error: function(error) {
+            alert("Error updating refund request");
+            console.log(error);
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
