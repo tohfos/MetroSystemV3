@@ -3,32 +3,24 @@
 <head>
   <title>Metro Subscription Selection</title>
   <style>
+    /* Add the styles from frontend 1 */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 20px;
       background: url('metro.jpeg') no-repeat center center fixed;
       background-size: cover;
-      backdrop-filter: blur(4px); /* Apply the blur effect */
+      backdrop-filter: blur(4px);
     }
 
     .container {
       max-width: 800px;
       margin: 0 auto;
-      background-color: rgba(255, 255, 255, 0.6); /* Adjust the transparency here */
+      background-color: rgba(255, 255, 255, 0.6);
       border-radius: 8px;
       padding: 40px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .left-section {
-      flex: 1;
-    }
-
-    .right-section {
-      flex: 1;
-      padding-left: 40px;
-      border-left: 1px solid #ccc;
+      backdrop-filter: blur(4px);
     }
 
     h1 {
@@ -46,18 +38,8 @@
       margin-bottom: 5px;
     }
 
-    .form-group input[type="text"] {
-      width: 100%;
-      padding: 8px;
-      font-size: 16px;
-    }
-
-    .form-group input[type="number"] {
-      width: 100%;
-      padding: 8px;
-      font-size: 16px;
-    }
-
+    .form-group input[type="text"],
+    .form-group input[type="number"],
     .form-group select {
       width: 100%;
       padding: 8px;
@@ -82,50 +64,109 @@
       margin: 40px 0;
       border-top: 1px solid #ccc;
     }
+
+    .payment-success {
+      color: green;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .payment-failure {
+      color: red;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="left-section">
-      <h1>Please enter your payment details</h1>
+    <h1>Purchase a Subscription</h1>
 
-      <div class="form-group">
-        <label for="creditCardNumber">Credit Card Number</label>
-        <input type="text" id="creditCardNumber" placeholder="Enter your credit card number">
-      </div>
-
-      <div class="form-group">
-        <label for="nameOnCard">Name on Card</label>
-        <input type="text" id="nameOnCard" placeholder="Enter the name on your card">
-      </div>
-
-      <div class="form-group">
-        <label for="cvv">CVV</label>
-        <input type="text" id="cvv" placeholder="Enter the CVV code">
-      </div>
+    <div class="form-group">
+      <label for="subscription">Subscription</label>
+      <select id="subscription" required>
+        <option value="" disabled selected>Select your subscription</option>
+        <option value="Monthly">Monthly</option>
+        <option value="Quarterly">Quarterly</option>
+        <option value="Annually">Annually</option>
+      </select>
     </div>
 
-    <hr class="separator">
-
-    <div class="right-section">
-      <h1>Please select your preferred subscription</h1>
-
-      <div class="form-group">
-        <label for="subscription">Subscription</label>
-        <select id="subscription">
-          <option value="Monthly">Monthly</option>
-          <option value="Quarterly">Quarterly</option>
-          <option value="Annually">Annually</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="amount">Amount</label>
-        <input type="text" id="amount" placeholder="Enter the amount">
-      </div>
-
-      <button class="button">Purchase</button>
+    <div class="form-group">
+      <label for="creditCardNumber">Credit Card Number</label>
+      <input type="text" id="creditCardNumber" placeholder="Enter your credit card number" required>
     </div>
+
+    <div class="form-group">
+      <label for="nameOnCard">Name on Card</label>
+      <input type="text" id="nameOnCard" placeholder="Enter the name on your card" required>
+    </div>
+
+    <div class="form-group">
+      <label for="cvv">CVV</label>
+      <input type="text" id="cvv" placeholder="Enter the CVV code" required>
+    </div>
+
+    <div class="form-group">
+      <label for="amount">Amount</label>
+      <input type="number" id="amount" placeholder="Enter the amount" required>
+    </div>
+
+    <button class="button" id="purchaseButton">Purchase</button>
+
+    <div id="purchaseMessage" style="display: none; text-align: center; margin-top: 20px;"></div>
+
+    <script>
+      document.getElementById("purchaseButton").addEventListener("click", function() {
+        var subscription = document.getElementById("subscription").value;
+        var creditCardNumber = document.getElementById("creditCardNumber").value;
+        var nameOnCard = document.getElementById("nameOnCard").value;
+        var cvv = document.getElementById("cvv").value;
+        var amount = document.getElementById("amount").value;
+
+        // Check for missing fields
+        if (subscription === "" || creditCardNumber === "" || nameOnCard === "" || cvv === "" || amount === "") {
+          document.getElementById("purchaseMessage").textContent = "Please fill in all fields.";
+          document.getElementById("purchaseMessage").style.display = "block";
+          return;
+        }
+
+        // Send data to the backend using fetch or other methods
+        fetch("/api/v1/payment/subscription", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            subType: subscription.toLowerCase(),
+            creditCardNumber: creditCardNumber,
+            holderName: nameOnCard,
+            cvv: cvv,
+            amount: amount,
+            zoneId: 2 // Replace with the correct zone ID
+          })
+        })
+        .then(function(response) {
+          if (response.ok) {
+            // Handle successful purchase
+            document.getElementById("purchaseMessage").textContent = "Subscription purchased successfully.";
+            document.getElementById("purchaseMessage").style.display = "block";
+          } else {
+            // Handle purchase error
+            console.error('Failed to purchase subscription');
+            // Show error message to the user
+          }
+        })
+        .catch(function(error) {
+          // Handle network or other errors
+          console.error('Error:', error);
+          // Show error message to the user
+        });
+      });
+    </script>
   </div>
 </body>
+
 </html>
