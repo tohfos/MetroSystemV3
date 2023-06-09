@@ -477,9 +477,7 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
       }
   
       // Check if the position is valid (start or end)
-      if (station.stationposition !== "start" && station.stationposition !== "end") {
-        return res.status(400).send("Invalid position");
-      }
+      
   
       // Create the route
       const newRoute = {
@@ -509,7 +507,7 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
     //pay for sub online
 
     //helper method
-    function generateUniqueId() {
+    function generateUniqueId() { 
       const timestamp = new Date().getTime();
       const random = Math.floor(Math.random() * 1000);
       return `${timestamp}-${random}`;
