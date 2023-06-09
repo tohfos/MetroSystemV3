@@ -58,11 +58,42 @@
 <body>
   <div class="container">
     <h1>Enter the name of the Station</h1>
-    <form>
-      <input type="text" id="Station Name" placeholder="Station Name" required>
+    <form id="stationForm">
+      <input type="text" id="stationName" placeholder="Station Name" required>
       <br><br>
       <button type="submit" class="submit-button">Submit</button>
     </form>
   </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $("#stationForm").submit(function(event) {
+        event.preventDefault();
+        
+        const stationName = $('#stationName').val();
+
+        const data = {
+          stationname: stationName,
+        };
+
+        $.ajax({
+          type: "POST",
+          url: '/api/v1/station',
+          data,
+
+          success: function(data) {
+            alert("Station Created Successfully");
+            window.location.href = "/adminstations";
+          },
+
+          error: function(err) {
+            alert("Error in creating Station");
+            console.log(err);
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
