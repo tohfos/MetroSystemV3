@@ -59,16 +59,46 @@
 <body>
   <div class="container">
     <h1>Enter the details of the Station</h1>
-    <form>
-      <input type="text" id="stationName" placeholder="Station Name" required>
-      <br><br>
-      <select id="stationType" required>
-        <option value="" disabled selected>Select Station </option>
-        
-      </select>
-      <br><br>
+    <form id="stationForm2">
+      <input type="text" id="oldstationName" placeholder="old Station Name" required>
+      <input type="text" id="newstationName" placeholder="new Station Name" required>
+
+      
       <button type="submit" class="submit-button">Submit</button>
     </form>
   </div>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+  $("#stationForm2").submit(function(event) {
+    event.preventDefault();
+    
+    const oldstationName = $('#oldstationName').val();
+    const newstationName = $('#newstationName').val();
+
+    const data = {
+      oldStationName: oldstationName,
+      newStationName: newstationName
+    };
+
+    $.ajax({
+      type: "PUT",
+      url: '/api/v1/station/0',
+      data,
+
+      success: function(data) {
+        alert("Station Name Updated Successfully");
+        window.location.href = "/adminstations";
+      },
+
+      error: function(err) {
+        alert("Error in Updating Station name");
+        console.log(err);
+      }
+    });
+  });
+});
+
+  </script>
 </body>
 </html>

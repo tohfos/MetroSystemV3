@@ -79,14 +79,26 @@ module.exports = function(app) {
     return res.render('purchasewithsubscription');
   });
 
+  app.get('/adminsenior', function(req, res) {
+    return res.render('adminsenior');
+    });
+
 
   app.get('/refundrequest', function(req, res) {
     return res.render('refundrequest');
     });
-
-  app.get('/refundsenioradmin', function(req, res) {
-      return res.render('refundsenioradmin');
+    app.get('/refundrequest', function(req, res) {
+    return res.render('refundrequest');
     });
+
+  app.get('/adminrequest', function(req, res) {
+      return res.render('adminrequest');
+    });
+
+    app.get('/adminrefund', function(req, res) {
+      return res.render('adminrefund');
+      });
+      
   
 
  

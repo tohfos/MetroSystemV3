@@ -87,7 +87,7 @@
     }
 
     function goToRequests() {
-      window.location.href = "/refundsenioradmin"; // Replace "/requests.html" with the actual URL of the requests page
+      window.location.href = "/adminrequest"; // Replace "/requests.html" with the actual URL of the requests page
     }
   </script>
 </body>

@@ -99,10 +99,12 @@ module.exports = function (app) {
   });
   
 
-  app.put("/api/v1/station/:stationId",async function(req,res){
-     
-    const {stationname}=req.body;
-    if(!stationname){
+  app.put("/api/v1/station/0",async function(req,res){
+    
+    const oldStationName=req.body.oldStationName;
+    const newStationName = req.body.newStationName
+    
+    if(!oldStationName || !newStationName){
       return res.status(400).send("name is required");
     }
     //check user authenticity
@@ -112,8 +114,8 @@ module.exports = function (app) {
     }
 
     //get the station from the database using the stationId
-    const stationId=req.params.stationId;
-    const station=await db.select("*").from("se_project.stations").where("id",stationId).first();
+  
+    const station=await db.select("*").from("se_project.stations").where("stationname",oldStationName).first();
     if(isEmpty(station)){
       return res.status(404).send("Station not found");
     }
@@ -122,13 +124,13 @@ module.exports = function (app) {
     
     
     const newStation={
-      stationname:stationname,
+      stationname:newStationName,
       
       
       
     }
     try{
-      const station=await db("se_project.stations").update(newStation).where("id",stationId).returning("*");
+      const station=await db("se_project.stations").update(newStation).where("stationname",oldStationName).returning("*");
       
       return res.status(200).json("updated station name");
 
@@ -475,9 +477,7 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
       }
   
       // Check if the position is valid (start or end)
-      if (station.stationposition !== "start" && station.stationposition !== "end") {
-        return res.status(400).send("Invalid position");
-      }
+      
   
       // Create the route
       const newRoute = {
@@ -507,7 +507,7 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
     //pay for sub online
 
     //helper method
-    function generateUniqueId() {
+    function generateUniqueId() { 
       const timestamp = new Date().getTime();
       const random = Math.floor(Math.random() * 1000);
       return `${timestamp}-${random}`;
@@ -651,7 +651,7 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
     }
   });
 
-  app.delete("/api/v1/station/:stationId", async function (req, res) {
+  app.delete("/api/v1/station/0", async function (req, res) {
     try {
       const { stationId } = req.params;
       const user = await getUser(req);
@@ -816,6 +816,31 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
     
   
   });
+
+  app.get("/api/v1/tickets/origin", async function (req, res) {
+    try {
+      const origins = await db.select('id', 'stationname').from('se_project.stations');
+      res.status(200).json(origins);
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+
+  app.get("/api/v1/tickets/destination", async function (req, res) {
+    try {
+      const destinations = await db.select('id', 'stationname').from('se_project.stations');
+      res.status(200).json(destinations);
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+
+
+
+
+
   
   async function generateMatrix(NumberOfStations) {
     

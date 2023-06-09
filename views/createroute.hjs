@@ -58,15 +58,50 @@
 <body>
   <div class="container">
     <h1>Enter the details of the Route</h1>
-    <form>
-      <input type="text" id="newStation" placeholder="New Station" required>
+    <form id="routeForm">
+      <input type="text" id="stationId" placeholder="New Station" required>
       <br><br>
-      <input type="text" id="connectedStation" placeholder="Connected Station" required>
+      <input type="text" id="connectedStationId" placeholder="Connected Station" required>
       <br><br>
       <input type="text" id="routeName" placeholder="Route Name" required>
       <br><br>
       <button type="submit" class="submit-button">Submit</button>
     </form>
   </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $("#routeForm").submit(function(event) {
+        event.preventDefault();
+        
+        const stationId = $('#stationId').val();
+        const connectedStationId = $('#connectedStationId').val();
+        const routeName = $('#routeName').val();
+
+        const data = {
+          stationId: stationId,
+          connectedStationId: connectedStationId,
+          routename: routeName
+        };
+
+        $.ajax({
+          type: "POST",
+          url: '/api/v1/route',
+          data: data,
+
+          success: function(data) {
+            alert("Route Created Successfully");
+            window.location.href = "/adminroutes";
+          },
+
+          error: function(err) {
+            alert("Error in creating Route");
+            console.log(err);
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
