@@ -59,9 +59,9 @@
   <div class="container">
     <h1>Enter the details of the Route</h1>
     <form id="routeForm">
-      <input type="text" id="stationId" placeholder="New Station" required>
+      <input type="text" id="stationId" placeholder="FirstStation" required>
       <br><br>
-      <input type="text" id="connectedStationId" placeholder="Connected Station" required>
+      <input type="text" id="connectedStationId" placeholder="SecondStation" required>
       <br><br>
       <input type="text" id="routeName" placeholder="Route Name" required>
       <br><br>

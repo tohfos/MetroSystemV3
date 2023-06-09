@@ -83,7 +83,7 @@
         data.forEach(ticket => {
           const option = document.createElement('option');
           option.value = ticket.id;
-          option.text = `${ticket.origin} to ${ticket.destination} on ${ticket.tripdate}`;
+          option.text = `${ticket.origin} to ${ticket.destination} `;
           ticketSelect.appendChild(option);
         });
       })
@@ -100,7 +100,7 @@
       console.log(ticketSelect);
 
       // Make the API call to request a refund
-      fetch(`/api/v1/requests/refunds/user/${selectedTicketId}`, {
+      fetch(`/api/v1/requests/refunds/user/${ticket.id}`, {
         method: 'POST',
         // Add any necessary headers or request body data
       })

@@ -136,9 +136,6 @@
     <div id="purchaseMessage" class="purchase-message"></div>
 
     <script>
-      function goToPurchaseWithSubscription() {
-        window.location.href = "purchasewithsubscription";
-      }
 
       document.getElementById("purchaseButton").addEventListener("click", function() {
         var from = document.getElementById("from-select").value;
@@ -147,12 +144,12 @@
         var creditCardNumber = document.getElementById("creditCardNumber").value;
         var nameOnCard = document.getElementById("nameOnCard").value;
 
-        // Send data to the backend using fetch or other methods
+        // Send data to the backend using fetch or other methods//edit here
         fetch("/api/v1/payment/ticket", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
-            },
+          },
           body: JSON.stringify({
             origin: from,
             destination: to,
@@ -165,17 +162,20 @@
           if (response.ok) {
             // Handle successful purchase
             console.log("success")
+            alert("Ticket purchased successfully.")
             document.getElementById("purchaseMessage").textContent = "Ticket purchased successfully.";
             document.getElementById("purchaseMessage").style.display = "block";
           } else {
             // Handle purchase error
             console.error('Failed to purchase ticket');
+            //alert("Failed to purchase ticket.")
             // Show error message to the user
           }
         })
         .catch(function(error) {
           // Handle network or other errors
           console.error('Error:', error);
+          alert("Failed to purchase ticket.")
           // Show error message to the user
         });
       });

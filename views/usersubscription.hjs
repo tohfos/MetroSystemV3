@@ -152,10 +152,12 @@
           if (response.ok) {
             // Handle successful purchase
             document.getElementById("purchaseMessage").textContent = "Subscription purchased successfully.";
+            alert("Subscription purchased successfully.")
             document.getElementById("purchaseMessage").style.display = "block";
           } else {
             // Handle purchase error
             console.error('Failed to purchase subscription');
+            alert("Failed to purchase subscription");
             // Show error message to the user
           }
         })

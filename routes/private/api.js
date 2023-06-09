@@ -387,12 +387,17 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
   //
   app.put("/api/v1/password/reset", async function (req, res) {
     try {
-      const { newPassword } = req.body;
+      const  newPassword = {
+        
+        
+        password:req.body.newPassword,
+      
+      };
       const user = await getUser(req);
-
+  
       await db("se_project.users")
-        .where("id", user.id)
-        .update({ password: newPassword });
+        .where("id", user.userid)
+        .update(newPassword);
 
       return res.status(200).send("Password reset successful");
     } catch (e) {
@@ -477,9 +482,9 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
       }
   
       // Check if the position is valid (start or end)
-      if (station.stationposition !== "start" && station.stationposition !== "end") {
+      /* if (station.stationposition !== "start" && station.stationposition !== "end") {
         return res.status(400).send("Invalid position");
-      }
+      } */
   
       // Create the route
       const newRoute = {
@@ -535,14 +540,16 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
         amount,
         userid: user.id,
         purchasediid: generatedPurchasedId,
+        purchasetype: subType,
       }).returning("id");
-      
-      await db("se_project.subsription").insert({
+      const newSubcription ={
         subtype: subType,
         zoneid: zoneId,
         userid: user.id,
         nooftickets: 10,
-      });
+
+      }
+      await db("se_project.subsription").insert(newSubcription);
     
       return res.status(200).json({ success: true, paymentId });
     });
@@ -553,7 +560,10 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
   //
   app.get("/api/v1/tickets", async function (req, res) {
     try {
-      const tickets = await db("se_project.tickets").select("id");
+      const user = await getUser(req);
+      const userId = user.id;
+
+      const tickets = await db("se_project.tickets").select("*").where("userid", userId);
       return res.status(200).json(tickets);
     } catch (e) {
       console.log(e.message);
@@ -577,17 +587,40 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
   
   app.post("/api/v1/payment/ticket", async function (req, res) {
     try {
-      const {
-        creditCardNumber,
-        holderName,
-        amount,
-        origin,
-        destination,
-        tripdatee,
-      } = req.body;
+      
       const user = await getUser(req);
       const generatedPurchasedId = generateUniqueId();
-  
+      const origin = req.body.origin;
+      const destination = req.body.destination;
+      const tripdatee = req.body.tripdate;
+      const rows = await db.select(db.raw('COUNT(*)')).from('se_project.stations');
+    
+    //convert rows to integer
+      const NumberOfStations = parseInt(rows[0].count);
+      const Matrix= await generateMatrix(NumberOfStations);
+      //console.log(Matrix);
+      const SPPMatrix = floydWarshall(Matrix);
+      const price=1;
+      try{
+        const NumberOfPassedStations = SPPM[originId-1][destinationId-1];
+        if(NumberOfPassedStations==Infinity){
+          console.log("No path exists");
+        }
+         price = NumberOfPassedStations * 5;
+        
+      
+      
+       }
+        catch(e){
+          console.log(e.message);
+          
+        }
+        
+      
+
+    
+      
+
       const ticket = {
         origin: origin,
         destination: destination,
@@ -600,13 +633,13 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
         .returning("*");
   
       const transaction = {
-        amount: amount,
+        amount: price,
         userid: user.id,
         purchasediid: generatedPurchasedId,
-      };
-      const insertedTransaction = await db("se_project.transactions")
-        .insert(transaction)
-        .returning("*");
+        purchasetype: "ticket",
+
+      }
+      const paymentId = await db("se_project.transactions").insert(transaction).returning("id");
   
       console.log("Payment done...");
   
@@ -678,7 +711,7 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
     }
   });
 
-  app.delete("/api/v1/station/0", async function (req, res) {
+  app.delete("/api/v1/station/:stationId", async function (req, res) {
     try {
       const { stationId } = req.params;
       const user = await getUser(req);
