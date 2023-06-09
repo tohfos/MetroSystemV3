@@ -6,10 +6,41 @@
     body {
       text-align: center;
       font-family: Arial, sans-serif;
+      background-image: url("metro.jpeg");
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: cover;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between; /* Updated */
+      background-color: rgb(195, 198, 98);
+      padding: 10px;
+      border-radius: 5px;
+      margin: 20px;
+    }
+
+    .header img {
+      height: 80px;
+      margin-right: 10px;
+    }
+
+    .container {
+      display: inline-block;
+      background-color: rgba(255, 255, 255, 0.7); /* Adjust the opacity value (0.0 - 1.0) */
+      padding: 30px;
+      border-radius: 10px;
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
 
     h1 {
-      margin-top: 50px;
+      margin-top: 0;
     }
 
     .button {
@@ -30,13 +61,23 @@
   </style>
 </head>
 <body>
-  <h1>Welcome, Admin!</h1>
+  <div class="header">
+    <img src="logo.png" alt="Logo">
+    <button class="button" onclick="goToReset()">Reset Password</button> <!-- Moved inside .header -->
+  </div>
 
-  <button class="button" onclick="goToStations()">Stations</button>
-  <button class="button" onclick="goToRoutes()">Routes</button>
-  <button class="button" onclick="goToRequests()">Requests</button>
+  <div class="container">
+    <h1>Welcome, Admin!</h1>
+    <button class="button" onclick="goToStations()">Stations</button>
+    <button class="button" onclick="goToRoutes()">Routes</button>
+    <button class="button" onclick="goToRequests()">Requests</button>
+  </div>
 
   <script>
+    function goToReset() {
+      window.location.href = "/passwordreset"; // Replace "/stations.html" with the actual URL of the stations page
+    }
+
     function goToStations() {
       window.location.href = "/adminstations"; // Replace "/stations.html" with the actual URL of the stations page
     }
@@ -46,7 +87,7 @@
     }
 
     function goToRequests() {
-      window.location.href = "/requests.html"; // Replace "/requests.html" with the actual URL of the requests page
+      window.location.href = "/refundsenioradmin"; // Replace "/requests.html" with the actual URL of the requests page
     }
   </script>
 </body>

@@ -1,42 +1,76 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Button Page</title>
+  <title>Admin Stations</title>
   <style>
-    .button-container {
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: url('metro.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    
+    }
+
+
+    .container {
       text-align: center;
-      margin-top: 100px;
+      padding: 50px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 11px;
+      margin-bottom: 100px;
+    }
+
+    h1 {
+      margin-top: 0; /* Remove top margin from the h1 heading */
     }
 
     .button {
-      padding: 10px 20px;
-      font-size: 18px;
+      padding: 8px 16px; /* Adjust button padding */
+      font-size: 16px; /* Reduce button font size */
       margin: 10px;
+      background-color: #4CAF50; /* Change button background color to green */
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
 
-    .create {
-      background-color: #4CAF50;
-      color: white;
-    }
-
-    .update {
-      background-color: #2196F3;
-      color: white;
-    }
-
-    .delete {
-      background-color: #F44336;
-      color: white;
+    .button:hover {
+      background-color: #45a049; /* Darker green on hover */
     }
   </style>
 </head>
 <body>
-  <h1>What action would you like to do with the stations?</h1>
+  <div class="background-container"></div>
+  <div class="container">
+    <h1>Stations</h1>
+    <div class="button-container">
+     
+      <button class="button create" onclick="goToCreate()">Create</button>
+      <button class="button update" onclick="goToUpdate()">Update</button>
+      <button class="button delete" onclick="goToDelete()">Delete</button>
+    </div>
+    <script>
+      function goToCreate() {
+      window.location.href = "/createstation"; // Replace "/stations.html" with the actual URL of the stations page
+    }
 
-  <div class="button-container">
-    <button class="button create">Create</button>
-    <button class="button update">Update</button>
-    <button class="button delete">Delete</button>
+    function goToUpdate() {
+      window.location.href = "/updatestation"; // Replace "/stations.html" with the actual URL of the stations page
+    }
+
+    function goToDelete() {
+      window.location.href = "/deletestation"; // Replace "/stations.html" with the actual URL of the stations page
+    }
+    </script>
+
+    </div>
   </div>
 </body>
 </html>

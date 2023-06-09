@@ -54,8 +54,41 @@ module.exports = function(app) {
   app.get('/usersubscription', function(req, res) {
   return res.render('usersubscription');
   });
+  app.get('/createstation', function(req, res) {
+    return res.render('createstation');
+  });
+  app.get('/updatestation', function(req, res) {
+    return res.render('updatestation');
+  });
+  app.get('/deletestation', function(req, res) {
+    return res.render('deletestation');
+  });
+
+
+
+  app.get('/createroute', function(req, res) {
+    return res.render('createroute');
+  });
+  app.get('/updateroute', function(req, res) {
+    return res.render('updateroute');
+  });
+  app.get('/deleteroute', function(req, res) {
+    return res.render('deleteroute');
+  });
+
+
   app.get('/refundrequest', function(req, res) {
     return res.render('refundrequest');
     });
+
+  app.get('/refundsenioradmin', function(req, res) {
+      return res.render('refundsenioradmin');
+    });
+  
+
+ 
+
+
+
   
 };
