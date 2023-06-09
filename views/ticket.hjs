@@ -63,6 +63,11 @@
       margin: 20px 0;
       border-top: 1px solid #ccc;
     }
+
+    .subscription-label {
+      display: inline-block;
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
@@ -72,14 +77,14 @@
     <div class="form-group">
       <label for="from">From</label>
       <select id="from">
-        
+        <!-- options here -->
       </select>
     </div>
 
     <div class="form-group">
       <label for="to">To</label>
       <select id="to">
-        
+        <!-- options here -->
       </select>
     </div>
 
@@ -107,7 +112,16 @@
       <input type="text" id="cvv" placeholder="Enter the CVV code">
     </div>
 
-    <button class="button">Purchase</button>
+    <div>
+      <button class="button">Purchase</button>
+      <button class="button" onclick="goToPurchaseWithSubscription()">Purchase with Subscription</button>
+    </div>
+
+    <script>
+      function goToPurchaseWithSubscription() {
+        window.location.href = "purchasewithsubscription";
+      }
+    </script>
   </div>
 </body>
 </html>

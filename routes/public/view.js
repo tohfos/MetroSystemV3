@@ -75,6 +75,9 @@ module.exports = function(app) {
   app.get('/deleteroute', function(req, res) {
     return res.render('deleteroute');
   });
+  app.get('/purchasewithsubscription', function(req, res) {
+    return res.render('purchasewithsubscription');
+  });
 
 
   app.get('/refundrequest', function(req, res) {

@@ -3,10 +3,6 @@ const { v4 } = require("uuid");
 const db = require("../../connectors/db");
 const roles = require("../../constants/roles");
 const {getSessionToken}=require('../../utils/session')
-
-
-
-
 const getUser = async function (req) {
   const sessionToken = getSessionToken(req);
   if (!sessionToken) {
@@ -52,39 +48,56 @@ module.exports = function (app) {
    
   });
 
-  app.post("/api/v1/station",async function(req,res){
- 
-    const {stationname}=req.body;
-    if(!stationname){
-      return res.status(400).send("name is required");
+  app.post("/api/v1/station", async function(req, res) {
+    const { stationname } = req.body;
+    
+    if (!stationname) {
+      return res.status(400).send("Name is required");
     }
     
     const user = await getUser(req);
-    if(!user.isAdmin){
+    
+    if (!user.isAdmin) {
       return res.status(401).send("Unauthorized");
     }
-    const newStation={
-      stationname:stationname,
-      stationtype:"normal",
-      stationstatus:"new"
+    
+    try {
+      // Check if a station with the same name already exists
+      const existingStation = await db
+        .select("*")
+        .from("se_project.stations")
+        .where("stationname", stationname)
+        .first();
+        
+      if (existingStation) {
+        return res.status(409).send("Station with the same name already exists");
+      }
       
-      
-    }
-    try{
-      const station=await db("se_project.stations").insert(newStation).returning("*");
-      
-      return res.status(200).json("added new station with the name : ",newStation.stationname);
+      await db("se_project.stations")
+      .where({ stationposition: "end" })
+      .update({ stationposition: "middle" });
 
-    }catch(e){
+      const newStation = {
+        stationname: stationname,
+        stationposition: "end",
+        stationtype: "normal",
+        stationstatus: "new"
+      };
+      
+      const insertedStation = await db("se_project.stations")
+        .insert(newStation)
+        .returning("*");
+      
+      return res.status(200).json({
+        message: "Added new station with the name: " + newStation.stationname,
+        station: insertedStation
+      });
+    } catch (e) {
       console.log(e.message);
       return res.status(400).send("Could not create station");
     }
   });
-
-
-
-
-
+  
 
   app.put("/api/v1/station/:stationId",async function(req,res){
      
@@ -290,101 +303,571 @@ app.post("/api/v1/tickets/purchase/subscription", async function (req, res) {
 
 
 
-
-
-
-app.get("/api/v1/tickets/price/:originId&:destinationId", async function (req, res) {
-  const originId = parseInt(req.params.originId);
-  const destinationId = parseInt(req.params.destinationId);
-  console.log(originId);
-  console.log(destinationId);
-  const rows = await db.select(db.raw('COUNT(*)')).from('se_project.stations');
+app.post("/api/v1/senior/request", async function(req, res) {
+  try {
+    const {nationalId} = req.body;
+    const user = await getUser(req);
   
-  //convert rows to integer
-  const NumberOfStations = parseInt(rows[0].count);
-  
+    // Process the senior request logic logic here
 
-  const outMatrix=await generateMatrix(NumberOfStations,originId,destinationId);
-  const SPPM = floydWarshall(outMatrix); //shortest path matrix
- try{
-  const NumberOfPassedStations = SPPM[originId-1][destinationId-1];
-  if(NumberOfPassedStations==Infinity){
-    return res.status(400).send("There is no route between the two stations");
-  }
-  const price = NumberOfPassedStations * 5;
-  return res.status(200).json(price);
-
-
- }
-  catch(e){
+    await db("se_project.senior_requests").insert({
+      userid: user.id,
+      nationalid: nationalId,
+      status: "pending"
+    })
+   // Return success response
+   return res.status(200).send("Senior request processed successfully");
+  } catch (e) {
     console.log(e.message);
-    return res.status(400).send("one of your stations is not found");
+    return res.status(400).send("Could not process senior request");
   }
-  
-
-
-  
-
 });
 
-async function generateMatrix(NumberOfStations) {
+
+
+app.delete("/api/v1/route/:routeId", async function(req, res) {
+  try {
+    const { routeId } = req.params;
+    const user = await getUser(req);
+    const route = await db("se_project.routes").select("*").where({ id: routeId }).first();
+
+    if (!user.isAdmin) return res.status(401);
+
+    const stationIdfrom = route.fromstationid;
+    const stationidto = route.tostationid;
+
+    const fromStation = await db("se_project.stations").select("stationposition").where({ id: stationIdfrom }).first();
+    const toStation = await db("se_project.stations").select("stationposition").where({ id: stationidto }).first();
+
+    if (fromStation.stationposition === "start" || toStation.stationposition === "end") {
+      await db("se_project.routes")
+        .where("id", routeId)
+        .delete();
+
+      // Return success response
+      return res.status(200).send("Route updated successfully");
+    } else {
+      return res.status(400).send("Invalid station positions for route deletion");
+    }
+  } catch (e) {
+    console.log(e.message);
+    return res.status(400).send("Could not process route update");
+  }
+});
+
+
+
+app.put("/api/v1/route/:routeId", async function(req, res) {
+  try {
+    const {routeId} = req.params;
+    const {routeName} = req.body;
+    const user = await getUser(req);
   
-  const StationsMatrix = [];
-  const routes = await db.select("*").from("se_project.routes");
+    // Process the senior request logic logic here
+    const route=await db("se_project.routes")
+    .where("id",routeId)
+    .update({ "routename":routeName }).returning("*");
+    
+
+    // Return success response
+    return res.status(200).send("Route updated successfully");
+  } catch (e) {
+    console.log(e.message);
+    return res.status(400).send("Could not process route update");
+  }
+});
 
 
-  for (let i = 0; i < NumberOfStations; i++) {
-     StationsMatrix[i]= [];
-    for (let j = 0; j < NumberOfStations; j++) {
-      if(i==j){
-        StationsMatrix[i][j] = 0;//distance from a station to itself is 0
-      }else{
-        StationsMatrix[i][j] = Infinity;
+//Gerges kan hena ^
+
+//
+  //reset password
+  //
+  app.put("/api/v1/password/reset", async function (req, res) {
+    try {
+      const { newPassword } = req.body;
+      const user = await getUser(req);
+
+      await db("se_project.users")
+        .where("id", user.id)
+        .update({ password: newPassword });
+
+      return res.status(200).send("Password reset successful");
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not reset password");
+    }
+  });
+
+  //helper method
+  function generateUniqueId() {
+    const timestamp = new Date().getTime();
+    const random = Math.floor(Math.random() * 1000);
+    return `${timestamp}-${random}`;
+  }
+
+  //
+  // simulate ride
+  //
+  app.put("/api/v1/ride/simulate", async function (req, res) {
+    try {
+      const { origin, destination, tripdatee } = req.body;
+      const user = await getUser(req);
+      console.log("Simulating a ride...");
+
+
+      const originStation = await db
+        .select("*")
+        .from("se_project.stations")
+        .where("stationname", origin)
+        .first();
+
+      const destinationStation = await db
+        .select("*")
+        .from("se_project.stations")
+        .where("stationname", destination)
+        .first();
+
+      if (!originStation || !destinationStation) {
+        return res.status(400).send("Invalid origin or destination station");
       }
 
+      const ride = {
+        status: "simulated",
+        origin: originStation.stationname,
+        destination: destinationStation.stationname,
+        userid: user.id,
+        ticketid: 1, // what should i put here?
+        tripdate: tripdatee,
+      };
+
+      const createdRide = await db("se_project.rides").insert(ride).returning("*");
+
+      return res.status(200).json(createdRide);
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not simulate ride");
+    }
+  });
+
+  //
+  //create a new route
+  //
+
+  app.post("/api/v1/route", async function (req, res) {
+    try {
+      const { stationId, connectedStationId, routename } = req.body;
+      const user = await getUser(req);
+  
+      if (!user.isAdmin) {
+        return res.status(401).send("Unauthorized");
+      }
+  
+      // Retrieve the newly created station
+      const station = await db
+        .select("*")
+        .from("se_project.stations")
+        .where("id", stationId)
+        .first();
+  
+      if (!station) {
+        return res.status(404).send("Station not found");
+      }
+  
+      // Check if the position is valid (start or end)
+      if (station.stationposition !== "start" && station.stationposition !== "end") {
+        return res.status(400).send("Invalid position");
+      }
+  
+      // Create the route
+      const newRoute = {
+        fromstationid: stationId,
+        tostationid: connectedStationId,
+        routename,
+      };
+  
+      // Insert the new route into the routes table
+      const [createdRoute] = await db("se_project.routes").insert(newRoute).returning(["id", "fromstationid", "tostationid"]);
+  
+      // Create the stationRoute entry
+      const stationRoute = {
+        stationid: stationId,
+        routeid: createdRoute.id,
+      };
+  
+      // Insert the stationRoute into the stationRoutes table
+      await db("se_project.stationroutes").insert(stationRoute);
+  
+      return res.status(201).send("Route created successfully");
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not create the route");
+    }
+  });
+    //pay for sub online
+
+    //helper method
+    function generateUniqueId() {
+      const timestamp = new Date().getTime();
+      const random = Math.floor(Math.random() * 1000);
+      return `${timestamp}-${random}`;
+    }
+    app.post("/api/v1/payment/subscription", async function (req, res) {
+      const { creditCardNumber, holderName, amount: initialAmount, subType, zoneId } = req.body;
+      console.log("PAYMENT INFO ACCEPTED!")
+      const generatedPurchasedId = generateUniqueId();
+      const user = await getUser(req);
+      
+      let amount = initialAmount; // Assign the initial amount to a variable that can be modified
+      
+      if (subType === "yearly") {
+        amount *= 10;
+      }
+      if (zoneId === 2) {
+        amount *= 2;
+      } else if (zoneId === 3) {
+        amount *= 3;
+      }
+    
+      const paymentId = await db("se_project.transactions").insert({
+        amount,
+        userid: user.id,
+        purchasediid: generatedPurchasedId,
+      }).returning("id");
+      
+      await db("se_project.subsription").insert({
+        subtype: subType,
+        zoneid: zoneId,
+        userid: user.id,
+        nooftickets: 10,
+      });
+    
+      return res.status(200).json({ success: true, paymentId });
+    });
+    
+    
+
+  //pay for a ticket
+  //
+  app.post("/api/v1/payment/ticket", async function (req, res) {
+    try {
+      const {
+        creditCardNumber,
+        holderName,
+        amount,
+        origin,
+        destination,
+        tripdatee,
+      } = req.body;
+      const user = await getUser(req);
+      const generatedPurchasedId = generateUniqueId();
+
+      const ticket = {
+        origin: origin,
+        destination: destination,
+        userid: user.id,
+        subid: null,
+        tripdate: tripdatee,
+      };
+      const insertedTicket = await db("se_project.tickets")
+        .insert(ticket)
+        .returning("*");
+
+      const transaction = {
+        amount: amount,
+        userid: user.id,
+        purchasediid: generatedPurchasedId,
+      };
+      const insertedTransaction = await db("se_project.transactions")
+        .insert(transaction)
+        .returning("*");
+        console.log("Payment done...");
+
+      return res.status(200).json({
+        ticket: insertedTicket,
+        transaction: insertedTransaction,
+      });
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not process the payment");
+    }
+  })
+
+  app.get("/api/v1/zones", async function (req, res) {
+    try {
+      const zones = await db.select("*").from("se_project.zones");
+      return res.status(200).json(zones);
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not get zone data");
+    }
+  });
+
+  //marco was here
+  
+  //refund for the user
+  app.post("/api/v1/requests/refunds/user/:ticketId", async function (req, res) {
+    try {
+      const { ticketId } = req.params;
+      const user = await getUser(req);
+  
+      // Check if the user is authorized to request a refund
+      if (!user.isNormal) {
+        return res.status(401).send("Unauthorized");
+      }
+  
+      // Retrieve the ticket from the database based on the ticketId
+      const ticket = await db
+        .select("*")
+        .from("se_project.tickets")
+        .where("id", ticketId)
+        .first();
+  
+      // Check if the ticket exists
+      if (!ticket) {
+        return res.status(404).send("Ticket not found");
+      }
+  
+      // Create a refund request
+      const refundRequest = {
+        status: "pending",
+        userid: user.id,
+        refundamount: 0, // Set the refund amount based on your logic
+        ticketid: ticket.id,
+      };
+  
+      // Save the refund request to the database
+      const createdRefundRequest = await db("se_project.refund_requests")
+        .insert(refundRequest)
+        .returning("*");
+  
+      return res.status(201).json(createdRefundRequest);
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not request the refund");
+    }
+  });
+
+  app.delete("/api/v1/station/:stationId", async function (req, res) {
+    try {
+      const { stationId } = req.params;
+      const user = await getUser(req);
+  
+      if (!user.isAdmin) {
+        return res.status(401).send("Unauthorized");
+      }
+  
+      const station = await db
+        .select("*")
+        .from("se_project.stations")
+        .where("id", stationId)
+        .first();
+  
+      if (!station) {
+        return res.status(404).send("Station not found");
+      }
+  
+      const { stationtype } = station;
+  
+      if (stationtype === "normal") {
+        // Delete the routes associated with the station
+        await db("se_project.stationroutes")
+          .where("stationid", stationId)
+          .delete();
+  
+        // Delete the station from the stations table
+        await db("se_project.stations")
+          .where("id", stationId)
+          .delete();
+  
+        return res.status(200).send("Station deleted successfully");
+      } else {
+        return res.status(400).send("Invalid station type");
+      }
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not delete the station");
+    }
+  });
+
+  //sobhy's
+
+  // zozz 
+
+  app.put("/api/v1/zones/:zoneId", async function(req, res) {
+    console.log("PUT /api/v1/zones/:zoneId");
+    try {
+      const user = await getUser(req);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+  
+      const zoneId = parseInt(req.params.zoneId);
+      const { price } = req.body;
+  
+      if (!price) {
+        return res.status(400).json({ message: "Invalid request" });
+      }
+  
+      const zone = await db("se_project.zones").where("id", zoneId).update({ price }).returning("*");
+      if (!zone) {
+        return res.status(404).json({ message: "Zone not found" });
+      }
+  
+      return res.status(200).json(zone[0]);
+    } catch (error) {
+      console.error("Error updating zone:", error);
+      return res.status(500).json({ message: "Internal server error" });
     }
     
-  }
+  });
 
+  //subscription
+  app.post("/api/v1/tickets/purchase/subscription", async function (req, res) {
+    try {
+      const { subId, origin, destination, tripdatee } = req.body;
   
-
-  
-  for (let i = 0; i < NumberOfStations; i++) {
-    for (let j = 0; j < NumberOfStations; j++) {
-      const Route = routes.find((route) => route.fromstationid === (i + 1) && route.tostationid === (j + 1));
-
-      if (Route) {
-        console.log("found route between ",i+1," and ",j+1);
-        StationsMatrix[i][j] = 1;
+      // Validate required fields
+      if (!subId || !origin || !destination || !tripdatee) {
+        return res.status(400).send("Missing required fields");
       }
+      
+
+      
+      // Perform additional validations and checks
+      // Check if the subscription exists
+      const subscription = await db
+        .select("*")
+        .from("se_project.subsription")
+        .where("id", subId)
+        .first();
+  
+      if (!subscription) {
+        return res.status(404).send("Subscription not found");
+      }
+  
+      // Perform any other necessary validations and checks
+      // ...
+      const user = await getUser(req);
+      const userId = user.id;
+
+          // Check if nooftickets is greater than zero
+      if (subscription.nooftickets === 0) {
+        return res.status(400).send("No tickets available for this subscription");
+      }
+      // Create the ticket
+      const ticket = {
+        subid: subId,
+        origin: origin,
+        destination: destination,
+        tripdate: tripdatee,
+        userid: userId,
+      };
+  
+      // Save the ticket to the database
+      const createdTicket = await db("se_project.tickets")
+        .insert(ticket)
+        .returning("*");
+      
+    await db("se_project.subsription")
+    .where("id", subId)
+    .where("nooftickets", ">", 0)
+    .decrement("nooftickets", 1);
+      return res.status(201).json(createdTicket);
+    } catch (e) {
+      console.log(e.message);
+      return res.status(400).send("Could not purchase the ticket by subscription");
     }
-  }
+  });
 
-  return StationsMatrix;
-
+  app.get("/api/v1/tickets/price/:originId&:destinationId", async function (req, res) {
+    const originId = parseInt(req.params.originId);
+    const destinationId = parseInt(req.params.destinationId);
+    console.log(originId);
+    console.log(destinationId);
+    const rows = await db.select(db.raw('COUNT(*)')).from('se_project.stations');
+    
+    //convert rows to integer
+    const NumberOfStations = parseInt(rows[0].count);
+    
   
-}
-
-
-function floydWarshall(StationsMatrix) {
-  const n = StationsMatrix.length;
-  const dist = [...StationsMatrix];
+    const outMatrix=await generateMatrix(NumberOfStations,originId,destinationId);
+    const SPPM = floydWarshall(outMatrix); //shortest path matrix
+   try{
+    const NumberOfPassedStations = SPPM[originId-1][destinationId-1];
+    if(NumberOfPassedStations==Infinity){
+      return res.status(400).send("There is no route between the two stations");
+    }
+    const price = NumberOfPassedStations * 5;
+    return res.status(200).json(price);
   
-
-  for (let k = 0; k < n; k++) {
-    for (let i = 0; i < n; i++) {
-      for (let j = 0; j < n; j++) {
-        if (dist[i][k] !== Infinity && dist[k][j] !== Infinity && dist[i][k] + dist[k][j] < dist[i][j]) {
-          dist[i][j] = dist[i][k] + dist[k][j];
+  
+   }
+    catch(e){
+      console.log(e.message);
+      return res.status(400).send("one of your stations is not found");
+    }
+    
+  
+  
+    
+  
+  });
+  
+  async function generateMatrix(NumberOfStations) {
+    
+    const StationsMatrix = [];
+    const routes = await db.select("*").from("se_project.routes");
+  
+  
+    for (let i = 0; i < NumberOfStations; i++) {
+       StationsMatrix[i]= [];
+      for (let j = 0; j < NumberOfStations; j++) {
+        if(i==j){
+          StationsMatrix[i][j] = 0;//distance from a station to itself is 0
+        }else{
+          StationsMatrix[i][j] = Infinity;
+        }
+  
+      }
+      
+    }
+  
+    
+  
+    
+    for (let i = 0; i < NumberOfStations; i++) {
+      for (let j = 0; j < NumberOfStations; j++) {
+        const Route = routes.find((route) => route.fromstationid === (i + 1) && route.tostationid === (j + 1));
+  
+        if (Route) {
+          console.log("found route between ",i+1," and ",j+1);
+          StationsMatrix[i][j] = 1;
         }
       }
     }
+  
+    return StationsMatrix;
+  
+    
   }
-
-  return dist;
-}
-
-
-
+  
+  
+  function floydWarshall(StationsMatrix) {
+    const n = StationsMatrix.length;
+    const dist = [...StationsMatrix];
+  
+    for (let k = 0; k < n; k++) {
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          if (dist[i][k] !== Infinity && dist[k][j] !== Infinity && dist[i][k] + dist[k][j] < dist[i][j]) {
+            dist[i][j] = dist[i][k] + dist[k][j];
+          }
+        }
+      }
+    }
+  
+    return dist;
+  }
 
 };
