@@ -815,6 +815,31 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
     
   
   });
+
+  app.get("/api/v1/tickets/origin", async function (req, res) {
+    try {
+      const origins = await db.select('id', 'stationname').from('se_project.stations');
+      res.status(200).json(origins);
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+
+  app.get("/api/v1/tickets/destination", async function (req, res) {
+    try {
+      const destinations = await db.select('id', 'stationname').from('se_project.stations');
+      res.status(200).json(destinations);
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+
+
+
+
+
   
   async function generateMatrix(NumberOfStations) {
     
