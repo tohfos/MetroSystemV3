@@ -154,6 +154,7 @@ fetch('/api/v1/tickets/destination')
         .then(data => {
           console.log('Ticket prices:', data);
           const amountLabel = document.getElementById('amount');
+          console.log();
           amountLabel.textContent = data; // Set the amount value
         })
         .catch(error => {

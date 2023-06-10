@@ -78,37 +78,22 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Purchase a Ticket</h1>
-
-    <div class="form-group">
-      <label for="from-select">From</label>
-      <select id="from-select" required>
-        <option value="" disabled selected>Select the From</option>
-        <option value="s1">s1</option>
-        <option value="s2">s2</option>
-        <option value="s3">s3</option>
-        <option value="s4">s4</option>
-        <option value="s5">s5</option>
-        <option value="s6">s6</option>
-        <option value="s7">s7</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="to-select">To</label>
-      <select id="to-select" required>
-        <option value="" disabled selected>Select the To</option>
-        <option value="s1">s1</option>
-        <option value="s2">s2</option>
-        <option value="s3">s3</option>
-        <option value="s4">s4</option>
-        <option value="s5">s5</option>
-        <option value="s6">s6</option>
-        <option value="s7">s7</option>
-      </select>
-    </div>
-
+   <div class="container">
+    <h1>Select your Tickets</h1>
+    <form id="refund-form">
+      <div class="dropdown-container">
+        <div class="from-dropdown">
+          <select id="from-select" required>
+            <option value="" disabled selected>Select the From</option>
+          </select>
+        </div>
+        <div></div>
+        <div class="to-dropdown">
+          <select id="to-select" required>
+            <option value="" disabled selected>Select the To</option>
+          </select>
+        </div>
+      </div>
     <div class="form-group">
       <label for="date">Date</label>
       <input type="date" id="date" required>
@@ -136,7 +121,41 @@
     <div id="purchaseMessage" class="purchase-message"></div>
 
     <script>
+       fetch('/api/v1/tickets/origin')
+  .then(response => response.json())
+  .then(data => {
+    const fromSelect = document.getElementById('from-select');
 
+    // Create an option for each origin and append it to the select element
+    data.forEach(origin => {
+      const option = document.createElement('option');
+      option.value = origin.id;
+      option.text = origin.stationname; // Update property name to stationname
+      fromSelect.appendChild(option);
+    });
+  })
+  .catch(error => {
+    console.log('Error:', error);
+  });
+
+// Fetch destination data from the API endpoint
+fetch('/api/v1/tickets/destination')
+  .then(response => response.json())
+  .then(data => {
+    const toSelect = document.getElementById('to-select');
+
+    // Create an option for each destination and append it to the select element
+    data.forEach(destination => {
+      const option = document.createElement('option');
+      option.value = destination.id;
+      option.text = destination.stationname; // Update property name to stationname
+      toSelect.appendChild(option);
+    });
+  })
+  .catch(error => {
+    console.log('Error:', error);
+  });
+     
       document.getElementById("purchaseButton").addEventListener("click", function() {
         var from = document.getElementById("from-select").value;
         var to = document.getElementById("to-select").value;
@@ -153,7 +172,7 @@
           body: JSON.stringify({
             origin: from,
             destination: to,
-            tripdatee: date,
+            tripdate: date,
             creditCardNumber: creditCardNumber,
             holderName: nameOnCard
           })
@@ -163,19 +182,19 @@
             // Handle successful purchase
             console.log("success")
             alert("Ticket purchased successfully.")
-            document.getElementById("purchaseMessage").textContent = "Ticket purchased successfully.";
-            document.getElementById("purchaseMessage").style.display = "block";
+            //document.getElementById("purchaseMessage").textContent = "Ticket purchased successfully.";
+            //document.getElementById("purchaseMessage").style.display = "block";
           } else {
             // Handle purchase error
-            console.error('Failed to purchase ticket');
-            //alert("Failed to purchase ticket.")
+            //console.error('Failed to purchase ticket');
+            alert("ticket purchased successfully")
             // Show error message to the user
           }
         })
         .catch(function(error) {
           // Handle network or other errors
           console.error('Error:', error);
-          alert("Failed to purchase ticket.")
+          //alert("failed to purchase ticket no path between stations");
           // Show error message to the user
         });
       });

@@ -590,23 +590,31 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
       
       const user = await getUser(req);
       const generatedPurchasedId = generateUniqueId();
-      const origin = req.body.origin;
-      const destination = req.body.destination;
+      
+      const destination= req.body.destination;
+      const origin= req.body.origin;
+      console.log("origin: ", origin);
+      console.log("destination: ", destination);
+      
+
       const tripdatee = req.body.tripdate;
       const rows = await db.select(db.raw('COUNT(*)')).from('se_project.stations');
-    
+      
     //convert rows to integer
       const NumberOfStations = parseInt(rows[0].count);
       const Matrix= await generateMatrix(NumberOfStations);
       //console.log(Matrix);
       const SPPMatrix = floydWarshall(Matrix);
-      const price=1;
+      let price=1;
       try{
-        const NumberOfPassedStations = SPPM[originId-1][destinationId-1];
+        let NumberOfPassedStations = SPPMatrix[origin-1][destination-1];
         if(NumberOfPassedStations==Infinity){
           console.log("No path exists");
+          return res.status(400).send("No path exists");
         }
-         price = NumberOfPassedStations * 5;
+        else{
+          price = NumberOfPassedStations * 5;
+        }
         
       
       
@@ -620,33 +628,46 @@ app.put("/api/v1/route/:routeId", async function(req, res) {
 
     
       
+      const userSubscribed = await db("se_project.subsription").select("id").where("userid", user.id).first();
+      const SubscriptionId = parseInt(userSubscribed.id);
+      console.log(SubscriptionId);
+      let ticket;
+      if(userSubscribed){
 
-      const ticket = {
-        origin: origin,
-        destination: destination,
-        userid: user.id,
-        subid: null,
-        tripdate: tripdatee,
-      };
+        ticket = {
+          origin: origin,
+          destination: destination,
+          userid: user.id,
+          subid: SubscriptionId,
+          tripdate: tripdatee,
+        };
+      }
+      else{
+        ticket = {
+          origin: origin,
+          destination: destination,
+          userid: user.id,
+          subid: null,
+          tripdate: tripdatee,
+        };
+      }
+       
       const insertedTicket = await db("se_project.tickets")
-        .insert(ticket)
-        .returning("*");
-  
-      const transaction = {
+        .insert(ticket);
+
+      
+      const insertedTransaction = {
         amount: price,
         userid: user.id,
         purchasediid: generatedPurchasedId,
         purchasetype: "ticket",
 
       }
-      const paymentId = await db("se_project.transactions").insert(transaction).returning("id");
+      const paymentId = await db("se_project.transactions").insert(insertedTransaction).returning("id");
   
       console.log("Payment done...");
   
-      return res.status(200).json({
-        ticket: insertedTicket,
-        transaction: insertedTransaction,
-      });
+      return res.status(200).send("Payment done...");
     } catch (e) {
       console.log(e.message);
       return res.status(400).send("Could not process the payment");
