@@ -326,7 +326,59 @@ app.post("/api/v1/senior/request", async function(req, res) {
 });
 
 
+app.get('/api/v1/upcomingrides', async function (req, res) {
+  const user = getUser(req);
 
+  const currentTimestamp = new Date().toISOString(); // Get the current timestamp
+
+  // Query the database for upcoming rides after the current timestamp
+ const rides =  db.select('*')
+    .from('se_project.rides')
+    .where('tripdate', '>', currentTimestamp).andWhere("userid",user.id)
+    .then(rides => {
+      res.json(rides); // Return the rides as JSON response
+    })
+    .catch(error => {
+      console.error('Error fetching upcoming rides:', error);
+      res.status(500).json({ error: 'An error occurred while fetching upcoming rides.' });
+    });
+});
+
+app.get('/api/v1/completedrides', async function(req, res) {
+  const user=getUser(req);
+
+  const currentTimestamp = new Date().toISOString(); // Get the current timestamp
+  const rides = await db.select("*").from("se_project.rides").where('tripdate', '<', currentTimestamp).andWhere("userid",user.id).then(rides => {
+    res.json(rides); // Return the rides as JSON response
+  })
+
+  // Query the database for completed rides before the current timestamp
+  
+    .catch(error => {
+      console.error('Error fetching completed rides:', error);
+      res.status(500).json({ error: 'An error occurred while fetching completed rides.' });
+    });
+});
+
+
+app.get("/api/v1/checkSubscription", async function(req, res) {
+try {
+  const user = await getUser(req);
+  const subscription = await db("se_project.subscription").select("*").where( "userid",user.id ).first();
+  console.log("entered");
+  console.log(subscription)
+  if (subscription) {
+    return res.status(200).send("User has an active subscription");
+  }
+  else{
+    return res.status(200).send("User has no active subscription");
+  }
+  
+} catch (error) {
+  return res.status(400).send("error");
+}
+
+});
 app.delete("/api/v1/route/:routeId", async function(req, res) {
   try {
     const { routeId } = req.params;

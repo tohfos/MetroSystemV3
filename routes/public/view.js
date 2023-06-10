@@ -63,6 +63,10 @@ module.exports = function(app) {
   app.get('/deletestation', function(req, res) {
     return res.render('deletestation');
   });
+  app.get('/subscribedUserPayment',function(req,res){
+    return res.render('subscribedUserPayment');
+
+  });
 
 
 

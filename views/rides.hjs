@@ -45,25 +45,92 @@
     .button:hover {
       background-color: #45a049;
     }
+
+    .rides-container {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #fff;
+    }
+
+    .rides-label {
+      margin-top: 10px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="map-container">
       <div class="buttons-container">
-        <button class="button" onclick="goToUpcomingRides()">Upcoming Rides</button>
-        <button class="button" onclick="goToCompletedRides()">Completed Rides</button>
+        <button class="button" onclick="goToUpcomingRides()">Upcoming Rides<span id="upcomingRidesLabel" class="rides-label"></span></button>
+        <button class="button" onclick="goToCompletedRides()">Completed Rides<span id="completedRidesLabel" class="rides-label"></span></button>
+      </div>
+      <div class="rides-container" id="ridesContainer">
+        <!-- Ride information will be displayed here -->
       </div>
     </div>
   </div>
 
   <script>
     function goToUpcomingRides() {
-      window.location.href = "/upcommingrides";
+      const upcomingRidesLabel = document.getElementById('upcomingRidesLabel');
+      upcomingRidesLabel.textContent = 'Loading...';
+
+      fetch('/api/v1/upcomingrides')
+        .then(response => response.json())
+        .then(upcomingRides => {
+          // Display the ride information
+          displayRides(upcomingRides);
+          upcomingRidesLabel.textContent = ''; // Clear the loading text
+        })
+        .catch(error => {
+          console.error(error);
+          upcomingRidesLabel.textContent = 'Error loading rides'; // Display error message
+        });
     }
 
     function goToCompletedRides() {
-      window.location.href = "/completedrides";
+      const completedRidesLabel = document.getElementById('completedRidesLabel');
+      completedRidesLabel.textContent = 'Loading...';
+
+      fetch('/api/v1/completedrides')
+        .then(response => response.json())
+        .then(completedRides => {
+          // Display the completed ride information
+          displayRides(completedRides);
+          completedRidesLabel.textContent = ''; // Clear the loading text
+        })
+        .catch(error => {
+          console.error(error);
+          completedRidesLabel.textContent = 'Error loading rides'; // Display error message
+        });
+    }
+
+    function displayRides(rides) {
+      const ridesContainer = document.getElementById('ridesContainer');
+      ridesContainer.innerHTML = '';
+
+      if (rides.length === 0) {
+        ridesContainer.innerHTML = '<p>No rides available.</p>';
+        return;
+      }
+
+      rides.forEach(ride => {
+        const rideElement = document.createElement('div');
+        rideElement.innerHTML = `
+          <h3>Ride ID: ${ride.id}</h3>
+          <p>Status: ${ride.status}</p>
+          <p>Origin: ${ride.origin}</p>
+          <p>Destination: ${ride.destination}</p>
+          <p>User ID: ${ride.userid}</p>
+          <p>Ticket ID: ${ride.ticketid}</p>
+          <p>Trip Date: ${ride.tripdate}</p>
+          <hr>
+        `;
+        ridesContainer.appendChild(rideElement);
+      });
     }
   </script>
 </body>

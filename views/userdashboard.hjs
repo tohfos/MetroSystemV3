@@ -166,9 +166,11 @@
       function goToTickets() {
         $(".container").addClass("page-transition");
         setTimeout(function() {
+          
           window.location.href = "/ticket"; // Replace with the actual URL of the tickets page
         }, 500); // Adjust the delay (in milliseconds) to match the animation duration
       }
+      
 
       function goToRequests() {
         $(".container").addClass("page-transition");

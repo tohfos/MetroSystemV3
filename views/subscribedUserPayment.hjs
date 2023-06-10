@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tickets</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: url('metro.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      backdrop-filter: blur(4px);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: rgba(255, 255, 255, 0.6);
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(4px);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .form-group select {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+    }
+
+    .button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .button:hover {
+      background-color: #45a049;
+    }
+
+    .divider {
+      margin: 20px 0;
+      border-top: 1px solid #ccc;
+    }
+
+    .purchase-message {
+      display: none;
+      text-align: center;
+      background-color: #4CAF50;
+      color: #fff;
+      padding: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+   <div class="container">
+    <h1>Select your Tickets</h1>
+    <form id="refund-form">
+      <div class="dropdown-container">
+        <div class="from-dropdown">
+          <select id="from-select" required>
+            <option value="" disabled selected>Select the From</option>
+          </select>
+        </div>
+        <div></div>
+        <div class="to-dropdown">
+          <select id="to-select" required>
+            <option value="" disabled selected>Select the To</option>
+          </select>
+        </div>
+      </div>
+    <div class="form-group">
+      <label for="date">Date</label>
+      <input type="date" id="date" required>
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="button" id="purchaseButton">Purchase</button>
+
+    <div id="purchaseMessage" class="purchase-message"></div>
+
+    <script>
+      fetch('/api/v1/tickets/origin')
+        .then(response => response.json())
+        .then(data => {
+          const fromSelect = document.getElementById('from-select');
+
+          // Create an option for each origin and append it to the select element
+          data.forEach(origin => {
+            const option = document.createElement('option');
+            option.value = origin.id;
+            option.text = origin.stationname; // Update property name to stationname
+            fromSelect.appendChild(option);
+          });
+        })
+        .catch(error => {
+          console.log('Error:', error);
+        });
+
+      // Fetch destination data from the API endpoint
+      fetch('/api/v1/tickets/destination')
+        .then(response => response.json())
+        .then(data => {
+          const toSelect = document.getElementById('to-select');
+
+          // Create an option for each destination and append it to the select element
+          data.forEach(destination => {
+            const option = document.createElement('option');
+            option.value = destination.id;
+            option.text = destination.stationname; // Update property name to stationname
+            toSelect.appendChild(option);
+          });
+        })
+        .catch(error => {
+          console.log('Error:', error);
+        });
+
+      document.getElementById("purchaseButton").addEventListener("click", function () {
+        var from = document.getElementById("from-select").value;
+        var to = document.getElementById("to-select").value;
+        var date = document.getElementById("date").value;
+
+        // Send data to the backend using fetch or other methods//edit here
+        fetch("/api/v1/payment/ticket", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            origin: from,
+            destination: to,
+            tripdate: date
+          })
+        })
+          .then(function (response) {
+            if (response.ok) {
+              // Handle successful purchase
+              console.log("success")
+              alert("Ticket purchased successfully.")
+              //document.getElementById("purchaseMessage").textContent = "Ticket purchased successfully.";
+              //document.getElementById("purchaseMessage").style.display = "block";
+            } else {
+              // Handle purchase error
+              //console.error('Failed to purchase ticket');
+              alert("Ticket purchase failed.")
+              // Show error message to the user
+            }
+          })
+          .catch(function (error) {
+            // Handle network or other errors
+            console.error('Error:', error);
+            //alert("failed to purchase ticket no path between stations");
+            // Show error message to the user
+          });
+      });
+    </script>
+  </div>
+</body>
+</html>
